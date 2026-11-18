@@ -7,7 +7,7 @@ import {
 } from '@/lib/auth/validation';
 import { completeOnboarding } from '@/app/actions/auth';
 import { _setTestSession, createSession, destroySession, getSession } from '@/lib/auth/session';
-import { MockDatabaseService } from '@/lib/db/mock';
+import { getDatabaseService, IDatabaseService } from '@/lib/db';
 
 describe('Onboarding Input Validation', () => {
   it('accepts completely valid onboarding input with WhatsApp', () => {
@@ -136,11 +136,13 @@ describe('Onboarding Input Validation', () => {
 });
 
 describe('Onboarding Server Action', () => {
-  let db: MockDatabaseService;
+  let db: IDatabaseService;
 
   beforeEach(() => {
-    db = new MockDatabaseService();
-    db.init(true);
+    db = getDatabaseService();
+    if ('init' in db && typeof (db as any).init === 'function') {
+      (db as any).init(true);
+    }
   });
 
   afterEach(async () => {

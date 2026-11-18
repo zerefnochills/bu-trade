@@ -85,8 +85,8 @@ export function validateOnboardingInput(data: OnboardingInput): OnboardingValida
   const course = (data.course || '').trim();
   if (!course) {
     errors.course = 'Course / Program is required.';
-  } else if (course.length < 2 || course.length > 50) {
-    errors.course = 'Course must be between 2 and 50 characters.';
+  } else if (course.length < 2 || course.length > 100) {
+    errors.course = 'Course must be between 2 and 100 characters.';
   }
 
   const numYear = Number(data.year);

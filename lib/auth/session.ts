@@ -120,6 +120,8 @@ export async function createSession(params: {
     createdAt: new Date().toISOString(),
   };
 
+  testSessionStore = session;
+
   try {
     const cookieStore = cookies();
     cookieStore.set(SESSION_COOKIE_NAME, serializeSession(session), {
@@ -130,7 +132,7 @@ export async function createSession(params: {
       maxAge: 60 * 60 * 24 * 7, // 7 days
     });
   } catch {
-    testSessionStore = session;
+    // Handled in environments without Next.js headers
   }
 
   return session;
@@ -188,6 +190,8 @@ export async function updateSession(updates: Partial<UserSession>): Promise<User
         : current.isOnboarded,
   };
 
+  testSessionStore = updated;
+
   try {
     const cookieStore = cookies();
     cookieStore.set(SESSION_COOKIE_NAME, serializeSession(updated), {
@@ -198,7 +202,7 @@ export async function updateSession(updates: Partial<UserSession>): Promise<User
       maxAge: 60 * 60 * 24 * 7,
     });
   } catch {
-    testSessionStore = updated;
+    // Handled in environments without Next.js headers
   }
 
   return updated;
