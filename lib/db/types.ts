@@ -101,6 +101,7 @@ export interface GetListingsOptions {
 export interface IDatabaseService {
   // Profiles
   getProfile(userId: string): Promise<Profile | null>;
+  getProfileByEmail(email: string): Promise<Profile | null>;
   createProfile(profile: Omit<Profile, 'createdAt' | 'updatedAt'>): Promise<Profile>;
   updateProfile(userId: string, updates: Partial<Profile>): Promise<Profile>;
 
@@ -109,6 +110,7 @@ export interface IDatabaseService {
   getListingById(id: string, viewerId?: string): Promise<Listing | null>;
   createListing(listing: Omit<Listing, 'id' | 'createdAt' | 'updatedAt'>): Promise<Listing>;
   updateListing(id: string, updates: Partial<Listing>, userId: string): Promise<Listing>;
+  deleteListing(id: string, userId: string): Promise<boolean>;
   countActiveListings(userId: string): Promise<number>;
 
   // Enquiries
@@ -122,6 +124,10 @@ export interface IDatabaseService {
   // Reports
   createReport(report: Omit<Report, 'id' | 'status' | 'createdAt'>): Promise<Report>;
   getReports(): Promise<Report[]>;
+  updateReportStatus(
+    id: string,
+    status: 'pending' | 'investigating' | 'resolved' | 'dismissed'
+  ): Promise<Report>;
 
   // Feedback
   createFeedback(feedback: Omit<Feedback, 'id' | 'createdAt'>): Promise<Feedback>;

@@ -137,6 +137,49 @@ registerTest('Tier 2', 'T2.02.5', '[Relist at Cap Rejection] Relisting delisted 
   }, /Active listing limit of 10 reached/);
 });
 
+registerTest('Tier 2', 'T2.02.6', '[Concurrency Burst Cap Enforcement] 5 concurrent creations from count=9 results in exactly 1 success and count=10', async (harness) => {
+  const uid = 'user_concurrency_create';
+  for (let i = 1; i <= 9; i++) {
+    await harness.createListing({ userId: uid, title: `Pre Item ${i}`, price: 100 });
+  }
+  assert.equal(await harness.countActiveListings(uid), 9);
+
+  const burstPromises = Array.from({ length: 5 }, (_, i) =>
+    harness.createListing({ userId: uid, title: `Burst Item ${i}`, price: 100 })
+  );
+  const results = await Promise.allSettled(burstPromises);
+  const succeeded = results.filter(r => r.status === 'fulfilled');
+  const rejected = results.filter(r => r.status === 'rejected');
+
+  assert.equal(succeeded.length, 1);
+  assert.equal(rejected.length, 4);
+  assert.equal(await harness.countActiveListings(uid), 10);
+});
+
+registerTest('Tier 2', 'T2.02.7', '[Concurrency Burst Relist Cap Enforcement] 5 concurrent relistings from count=9 results in exactly 1 success and count=10', async (harness) => {
+  const uid = 'user_concurrency_relist';
+  for (let i = 1; i <= 9; i++) {
+    await harness.createListing({ userId: uid, title: `Active ${i}`, price: 100 });
+  }
+  const delistedItems = [];
+  for (let i = 1; i <= 5; i++) {
+    const item = await harness.createListing({ userId: uid, title: `Delisted ${i}`, price: 100, status: 'delisted' });
+    delistedItems.push(item);
+  }
+  assert.equal(await harness.countActiveListings(uid), 9);
+
+  const relistPromises = delistedItems.map(item =>
+    harness.updateListing(item.id, { status: 'active' }, uid)
+  );
+  const results = await Promise.allSettled(relistPromises);
+  const succeeded = results.filter(r => r.status === 'fulfilled');
+  const rejected = results.filter(r => r.status === 'rejected');
+
+  assert.equal(succeeded.length, 1);
+  assert.equal(rejected.length, 4);
+  assert.equal(await harness.countActiveListings(uid), 10);
+});
+
 /* -------------------------------------------------------------------------- */
 /*         BC03: Price, Title & Content Boundaries (T2.03.1 - T2.03.7)        */
 /* -------------------------------------------------------------------------- */

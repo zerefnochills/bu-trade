@@ -382,8 +382,7 @@ export class MockDatabaseService {
     const isOwner = Boolean(
       viewerId && (
         listing.userId === viewerId ||
-        listing.userId.toLowerCase() === String(viewerId).toLowerCase() ||
-        (profile && profile.email.toLowerCase() === String(viewerId).toLowerCase())
+        listing.userId.toLowerCase() === String(viewerId).toLowerCase()
       )
     );
     const hasEnquired = Boolean(viewerId && this._hasEnquiredSync(listing.id, viewerId));
@@ -464,9 +463,16 @@ export class MockDatabaseService {
     }
 
     const status = listingData.status || 'active';
+    if (listingData.status && !['active', 'sold', 'delisted'].includes(listingData.status)) {
+      throw new Error("Invalid status: must be 'active', 'sold', or 'delisted'");
+    }
+
     if (status === 'active') {
-      const activeCount = await this.countActiveListings(listingData.userId);
-      if (activeCount >= 10) {
+      const currentActive = this.rawListings.filter(l =>
+        (l.userId === listingData.userId || l.userId.toLowerCase() === String(listingData.userId).toLowerCase()) &&
+        l.status === 'active'
+      ).length;
+      if (currentActive >= 10) {
         throw new Error("Active listing limit of 10 reached");
       }
     }
@@ -511,9 +517,16 @@ export class MockDatabaseService {
       throw new Error("Title is required and cannot be empty");
     }
 
+    if (updates.status !== undefined && !['active', 'sold', 'delisted'].includes(updates.status)) {
+      throw new Error("Invalid status: must be 'active', 'sold', or 'delisted'");
+    }
+
     if (updates.status === 'active' && raw.status !== 'active') {
-      const activeCount = await this.countActiveListings(userId);
-      if (activeCount >= 10) {
+      const currentActive = this.rawListings.filter(l =>
+        (l.userId === userId || l.userId.toLowerCase() === String(userId).toLowerCase()) &&
+        l.status === 'active'
+      ).length;
+      if (currentActive >= 10) {
         throw new Error("Active listing limit of 10 reached");
       }
     }

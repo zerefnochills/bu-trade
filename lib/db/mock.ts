@@ -381,8 +381,34 @@ export class MockDatabaseService implements IDatabaseService {
     return profile ? { ...profile } : null;
   }
 
+  async getProfileByEmail(email: string): Promise<Profile | null> {
+    this.init();
+    if (!email || typeof email !== 'string') return null;
+    const target = email.trim().toLowerCase();
+    const profile = this.profiles.find((p) => p.email.toLowerCase() === target);
+    return profile ? { ...profile } : null;
+  }
+
   async createProfile(profileData: Omit<Profile, 'createdAt' | 'updatedAt'>): Promise<Profile> {
     this.init();
+    if (!profileData.fullName || !profileData.fullName.trim()) {
+      throw new Error('Full name is required.');
+    }
+    if (!profileData.course || !profileData.course.trim()) {
+      throw new Error('Course is required.');
+    }
+    if (
+      profileData.year === undefined ||
+      !Number.isInteger(profileData.year) ||
+      profileData.year < 1 ||
+      profileData.year > 5
+    ) {
+      throw new Error('Academic year must be an integer between 1 and 5');
+    }
+    if (profileData.residence !== 'Hostel' && profileData.residence !== 'Day scholar') {
+      throw new Error("Residence must be 'Hostel' or 'Day scholar'");
+    }
+
     const existing = this.profiles.find((p) => p.id === profileData.id);
     if (existing) {
       return this.updateProfile(profileData.id, profileData);
@@ -402,6 +428,13 @@ export class MockDatabaseService implements IDatabaseService {
 
   async updateProfile(userId: string, updates: Partial<Profile>): Promise<Profile> {
     this.init();
+    if (updates.year !== undefined && (!Number.isInteger(updates.year) || updates.year < 1 || updates.year > 5)) {
+      throw new Error('Academic year must be an integer between 1 and 5');
+    }
+    if (updates.residence !== undefined && updates.residence !== 'Hostel' && updates.residence !== 'Day scholar') {
+      throw new Error("Residence must be 'Hostel' or 'Day scholar'");
+    }
+
     const index = this.profiles.findIndex((p) => p.id === userId);
     if (index === -1) {
       throw new Error(`Profile not found for userId: ${userId}`);
@@ -485,23 +518,47 @@ export class MockDatabaseService implements IDatabaseService {
   ): Promise<Listing> {
     this.init();
 
-    // 10 active listings limit check
-    if (listingData.status === 'active') {
-      const activeCount = await this.countActiveListings(listingData.userId);
-      if (activeCount >= 10) {
+    if (listingData.price !== undefined && listingData.price < 0) {
+      throw new Error("Price cannot be negative");
+    }
+    if (
+      !listingData.title ||
+      typeof listingData.title !== 'string' ||
+      listingData.title.trim().length === 0
+    ) {
+      throw new Error("Title is required and cannot be empty");
+    }
+
+    const status = listingData.status || 'active';
+    if (status && !['active', 'sold', 'delisted'].includes(status)) {
+      throw new Error("Invalid status: must be 'active', 'sold', or 'delisted'");
+    }
+
+    // 10 active listings limit check (synchronous atomic check against store array)
+    if (status === 'active') {
+      const currentActive = this.listings.filter(
+        (l) =>
+          (l.userId === listingData.userId ||
+            l.userId.toLowerCase() === String(listingData.userId).toLowerCase()) &&
+          l.status === 'active'
+      ).length;
+      if (currentActive >= 10) {
         throw new Error(
-          'Active listing limit reached: Each student can have a maximum of 10 active listings.'
+          'Active listing limit reached: Each student can have a maximum of 10 active listings. Active listing limit of 10 reached'
         );
       }
     }
 
     const now = new Date().toISOString();
     const id = `listing-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    const images = Array.isArray(listingData.images) ? listingData.images.slice(0, 5) : [];
 
     const newListing: Listing = {
       ...listingData,
       id,
-      images: listingData.images || [],
+      title: listingData.title.trim(),
+      status,
+      images,
       createdAt: now,
       updatedAt: now,
     };
@@ -527,16 +584,38 @@ export class MockDatabaseService implements IDatabaseService {
 
     // Authorization check: owner or moderator
     const caller = this.profiles.find((p) => p.id === userId);
-    if (current.userId !== userId && !caller?.isModerator) {
-      throw new Error('Unauthorized: You can only edit your own listings.');
+    if (
+      current.userId !== userId &&
+      current.userId.toLowerCase() !== String(userId).toLowerCase() &&
+      !caller?.isModerator
+    ) {
+      throw new Error("Unauthorized: Only the listing owner can update this listing");
     }
 
-    // If changing status to active, re-check 10 active listings cap
+    if (updates.price !== undefined && updates.price < 0) {
+      throw new Error("Price cannot be negative");
+    }
+    if (
+      updates.title !== undefined &&
+      (typeof updates.title !== 'string' || updates.title.trim().length === 0)
+    ) {
+      throw new Error("Title is required and cannot be empty");
+    }
+    if (updates.status && !['active', 'sold', 'delisted'].includes(updates.status)) {
+      throw new Error("Invalid status: must be 'active', 'sold', or 'delisted'");
+    }
+
+    // If changing status to active, re-check 10 active listings cap synchronously
     if (updates.status === 'active' && current.status !== 'active') {
-      const activeCount = await this.countActiveListings(current.userId);
-      if (activeCount >= 10) {
+      const currentActive = this.listings.filter(
+        (l) =>
+          (l.userId === current.userId ||
+            l.userId.toLowerCase() === String(current.userId).toLowerCase()) &&
+          l.status === 'active'
+      ).length;
+      if (currentActive >= 10) {
         throw new Error(
-          'Active listing limit reached: Each student can have a maximum of 10 active listings.'
+          'Active listing limit reached: Each student can have a maximum of 10 active listings. Active listing limit of 10 reached'
         );
       }
     }
@@ -546,6 +625,10 @@ export class MockDatabaseService implements IDatabaseService {
       ...updates,
       id, // immutable
       userId: current.userId, // immutable owner
+      ...(updates.images !== undefined
+        ? { images: Array.isArray(updates.images) ? updates.images.slice(0, 5) : [] }
+        : {}),
+      ...(updates.title !== undefined ? { title: updates.title.trim() } : {}),
       updatedAt: new Date().toISOString(),
     };
 
@@ -553,6 +636,28 @@ export class MockDatabaseService implements IDatabaseService {
     this.saveToStorage(STORAGE_KEYS.LISTINGS, this.listings);
 
     return this.sanitizeListing(updated, userId);
+  }
+
+  async deleteListing(id: string, userId: string): Promise<boolean> {
+    this.init();
+    const index = this.listings.findIndex((l) => l.id === id);
+    if (index === -1) {
+      throw new Error(`Listing not found: ${id}`);
+    }
+
+    const listing = this.listings[index];
+    const caller = this.profiles.find((p) => p.id === userId);
+    if (
+      listing.userId !== userId &&
+      listing.userId.toLowerCase() !== String(userId).toLowerCase() &&
+      !caller?.isModerator
+    ) {
+      throw new Error("Unauthorized: Only the listing owner can delete this listing");
+    }
+
+    this.listings.splice(index, 1);
+    this.saveToStorage(STORAGE_KEYS.LISTINGS, this.listings);
+    return true;
   }
 
   // ==========================================================================
@@ -631,6 +736,42 @@ export class MockDatabaseService implements IDatabaseService {
     return [...this.reports].sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
+  }
+
+  async updateReportStatus(
+    id: string,
+    status: 'pending' | 'investigating' | 'resolved' | 'dismissed'
+  ): Promise<Report> {
+    this.init();
+    const validStatuses: ('pending' | 'investigating' | 'resolved' | 'dismissed')[] = [
+      'pending',
+      'investigating',
+      'resolved',
+      'dismissed',
+    ];
+    if (!validStatuses.includes(status)) {
+      throw new Error(
+        `Invalid report status: ${status}. Must be one of: ${validStatuses.join(', ')}`
+      );
+    }
+
+    const report = this.reports.find((r) => r.id === id);
+    if (!report) {
+      throw new Error(`Report not found: ${id}`);
+    }
+
+    report.status = status;
+    if (status === 'resolved') {
+      const listing = this.listings.find((l) => l.id === report.listingId);
+      if (listing) {
+        listing.status = 'delisted';
+        listing.updatedAt = new Date().toISOString();
+        this.saveToStorage(STORAGE_KEYS.LISTINGS, this.listings);
+      }
+    }
+
+    this.saveToStorage(STORAGE_KEYS.REPORTS, this.reports);
+    return { ...report };
   }
 
   // ==========================================================================

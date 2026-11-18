@@ -55,6 +55,30 @@ export class SupabaseDatabaseService implements IDatabaseService {
     };
   }
 
+  async getProfileByEmail(email: string): Promise<Profile | null> {
+    if (!email || typeof email !== 'string') return null;
+    const { data, error } = await this.client
+      .from('profiles')
+      .select('*')
+      .ilike('email', email.trim())
+      .maybeSingle();
+
+    if (error || !data) return null;
+
+    return {
+      id: data.id,
+      email: data.email,
+      fullName: data.full_name,
+      course: data.course,
+      year: data.year,
+      residence: data.residence,
+      whatsapp: data.whatsapp || undefined,
+      isModerator: data.is_moderator,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+    };
+  }
+
   async createProfile(profileData: Omit<Profile, 'createdAt' | 'updatedAt'>): Promise<Profile> {
     const { data, error } = await this.client
       .from('profiles')
@@ -390,6 +414,41 @@ export class SupabaseDatabaseService implements IDatabaseService {
     };
   }
 
+  async deleteListing(id: string, userId: string): Promise<boolean> {
+    const { data: listing, error: fetchError } = await this.client
+      .from('listings')
+      .select('user_id')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (fetchError || !listing) {
+      throw new Error(`Listing not found: ${id}`);
+    }
+
+    if (listing.user_id !== userId) {
+      const { data: profile } = await this.client
+        .from('profiles')
+        .select('is_moderator')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (!profile?.is_moderator) {
+        throw new Error('Unauthorized: Only the listing owner can delete this listing');
+      }
+    }
+
+    const { error: deleteError } = await this.client
+      .from('listings')
+      .delete()
+      .eq('id', id);
+
+    if (deleteError) {
+      throw new Error(`Failed to delete listing: ${deleteError.message}`);
+    }
+
+    return true;
+  }
+
   // ==========================================================================
   // Enquiries & Protected Contact RPC
   // ==========================================================================
@@ -503,6 +562,49 @@ export class SupabaseDatabaseService implements IDatabaseService {
       status: row.status,
       createdAt: row.created_at,
     }));
+  }
+
+  async updateReportStatus(
+    id: string,
+    status: 'pending' | 'investigating' | 'resolved' | 'dismissed'
+  ): Promise<Report> {
+    const validStatuses: ('pending' | 'investigating' | 'resolved' | 'dismissed')[] = [
+      'pending',
+      'investigating',
+      'resolved',
+      'dismissed',
+    ];
+    if (!validStatuses.includes(status)) {
+      throw new Error(`Invalid report status: ${status}. Must be one of: ${validStatuses.join(', ')}`);
+    }
+
+    const { data, error } = await this.client
+      .from('reports')
+      .update({ status })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error || !data) {
+      throw new Error(`Failed to update report status: ${error?.message || 'Report not found'}`);
+    }
+
+    if (status === 'resolved') {
+      await this.client
+        .from('listings')
+        .update({ status: 'delisted' })
+        .eq('id', data.listing_id);
+    }
+
+    return {
+      id: data.id,
+      listingId: data.listing_id,
+      reporterId: data.reporter_id,
+      reason: data.reason,
+      details: data.details || undefined,
+      status: data.status,
+      createdAt: data.created_at,
+    };
   }
 
   // ==========================================================================
