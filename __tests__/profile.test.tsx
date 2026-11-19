@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import ProfileDashboard from '@/app/profile/ProfileDashboard';
+import ProfileError from '@/app/profile/error';
 import { Listing, Profile } from '@/lib/db/types';
 import * as listingActions from '@/app/actions/listings';
 
@@ -196,5 +197,209 @@ describe('Profile Dashboard Component', () => {
 
     expect(screen.getByText(/10 \/ 10 active/i)).toBeInTheDocument();
     expect(screen.getByText(/Cap reached \(10\/10\)/i)).toBeInTheDocument();
+  });
+
+  it('renders empty listings state when initialListings is an empty array', () => {
+    render(
+      <ProfileDashboard
+        profile={mockProfile}
+        initialListings={[]}
+      />
+    );
+
+    // Active listings counter shows 0 / 10 active
+    expect(screen.getByText(/0 \/ 10 active/i)).toBeInTheDocument();
+
+    // Active tab empty state message
+    expect(screen.getByText(/No active listings found/i)).toBeInTheDocument();
+
+    // Call-to-action link to post first listing
+    const postLink = screen.getByRole('link', { name: /Post your first listing/i });
+    expect(postLink).toBeInTheDocument();
+    expect(postLink).toHaveAttribute('href', '/sell');
+
+    // Switch to Sold tab and verify empty state
+    fireEvent.click(screen.getByText('Sold Items'));
+    expect(screen.getByText(/No sold listings found/i)).toBeInTheDocument();
+
+    // Switch to Delisted tab and verify empty state
+    fireEvent.click(screen.getByText('Delisted'));
+    expect(screen.getByText(/No delisted listings found/i)).toBeInTheDocument();
+  });
+
+  it('handles undefined and null initialListings defensively without crashing', () => {
+    // Should not throw when initialListings is undefined
+    expect(() => {
+      render(
+        <ProfileDashboard
+          profile={mockProfile}
+          initialListings={undefined as any}
+        />
+      );
+    }).not.toThrow();
+
+    expect(screen.getByText(/0 \/ 10 active/i)).toBeInTheDocument();
+    expect(screen.getByText(/No active listings found/i)).toBeInTheDocument();
+
+    // Should not throw when initialListings is null
+    expect(() => {
+      render(
+        <ProfileDashboard
+          profile={mockProfile}
+          initialListings={null as any}
+        />
+      );
+    }).not.toThrow();
+  });
+
+  it('renders placeholder emoji when listing has empty or missing images', () => {
+    const listingWithoutImages: Listing = {
+      ...mockListings[0],
+      id: 'l-no-img',
+      title: 'Lab Notebook',
+      images: [],
+    };
+
+    render(
+      <ProfileDashboard
+        profile={mockProfile}
+        initialListings={[listingWithoutImages]}
+      />
+    );
+
+    expect(screen.getByText('Lab Notebook')).toBeInTheDocument();
+    // Placeholder emoji displayed
+    expect(screen.getByText('🏷️')).toBeInTheDocument();
+    // No img element rendered
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+  });
+
+  it('renders image thumbnail when listing has valid images', () => {
+    const listingWithImage: Listing = {
+      ...mockListings[0],
+      id: 'l-with-img',
+      title: 'Scientific Calculator',
+      images: ['https://images.example.com/calc.webp'],
+    };
+
+    render(
+      <ProfileDashboard
+        profile={mockProfile}
+        initialListings={[listingWithImage]}
+      />
+    );
+
+    const img = screen.getByRole('img', { name: /Scientific Calculator/i });
+    expect(img).toBeInTheDocument();
+    expect(img).toHaveAttribute('src', 'https://images.example.com/calc.webp');
+    expect(img).toHaveClass('object-cover');
+  });
+
+  it('formats prices correctly for free and priced listings', () => {
+    const freeListing: Listing = {
+      ...mockListings[0],
+      id: 'l-free',
+      title: 'Free Workshop Handout',
+      price: 0,
+    };
+    const expensiveListing: Listing = {
+      ...mockListings[0],
+      id: 'l-exp',
+      title: 'Cycle Hero Sprint',
+      price: 4500,
+    };
+
+    render(
+      <ProfileDashboard
+        profile={mockProfile}
+        initialListings={[freeListing, expensiveListing]}
+      />
+    );
+
+    expect(screen.getByText('Free')).toBeInTheDocument();
+    expect(screen.getByText('₹4,500')).toBeInTheDocument();
+  });
+
+  it('handles permanent listing deletion in Delisted tab with confirm dialog', async () => {
+    (listingActions.deleteListingAction as jest.Mock).mockResolvedValue({
+      success: true,
+    });
+
+    // Mock window.confirm
+    const confirmSpy = jest.spyOn(window, 'confirm');
+
+    render(
+      <ProfileDashboard
+        profile={mockProfile}
+        initialListings={mockListings}
+      />
+    );
+
+    // Switch to Delisted tab
+    fireEvent.click(screen.getByText('Delisted'));
+    expect(screen.getByText('Old Bedside Table')).toBeInTheDocument();
+
+    const deleteBtn = screen.getByRole('button', { name: /Delete listing/i });
+
+    // Case 1: User cancels confirm
+    confirmSpy.mockReturnValueOnce(false);
+    fireEvent.click(deleteBtn);
+    expect(listingActions.deleteListingAction).not.toHaveBeenCalled();
+
+    // Case 2: User confirms
+    confirmSpy.mockReturnValueOnce(true);
+    fireEvent.click(deleteBtn);
+
+    await waitFor(() => {
+      expect(listingActions.deleteListingAction).toHaveBeenCalledWith('l-del-1');
+    });
+
+    confirmSpy.mockRestore();
+  });
+});
+
+describe('Profile Error Boundary Component (app/profile/error.tsx)', () => {
+  let consoleSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    consoleSpy.mockRestore();
+  });
+
+  it('renders error title, error message, and retry button', () => {
+    const mockReset = jest.fn();
+    const testError = new Error('Database connection failed on profile fetch');
+
+    render(<ProfileError error={testError} reset={mockReset} />);
+
+    expect(screen.getByText(/Unable to Load Listings/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Database connection failed on profile fetch/i)
+    ).toBeInTheDocument();
+
+    const retryBtn = screen.getByRole('button', { name: /Try Again/i });
+    expect(retryBtn).toBeInTheDocument();
+
+    fireEvent.click(retryBtn);
+    expect(mockReset).toHaveBeenCalledTimes(1);
+
+    const homeLink = screen.getByRole('link', { name: /Campus Feed/i });
+    expect(homeLink).toBeInTheDocument();
+    expect(homeLink).toHaveAttribute('href', '/');
+  });
+
+  it('renders fallback error message when error has no message', () => {
+    const mockReset = jest.fn();
+    const emptyError = {} as Error;
+
+    render(<ProfileError error={emptyError} reset={mockReset} />);
+
+    expect(screen.getByText(/Unable to Load Listings/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Something went wrong while loading your campus profile/i)
+    ).toBeInTheDocument();
   });
 });

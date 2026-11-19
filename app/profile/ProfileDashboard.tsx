@@ -5,7 +5,7 @@
 // Handles Active, Sold, Delisted tabs and lifecycle actions
 // ============================================================================
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Listing, ListingStatus, Profile } from '@/lib/db/types';
@@ -29,21 +29,30 @@ import {
 
 interface ProfileDashboardProps {
   profile: Profile;
-  initialListings: Listing[];
+  initialListings?: Listing[];
 }
 
 export default function ProfileDashboard({
   profile,
-  initialListings,
+  initialListings = [],
 }: ProfileDashboardProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'active' | 'sold' | 'delisted'>('active');
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
   const [statusError, setStatusError] = useState<string | null>(null);
 
-  const activeListings = initialListings.filter((l) => l.status === 'active');
-  const soldListings = initialListings.filter((l) => l.status === 'sold');
-  const delistedListings = initialListings.filter((l) => l.status === 'delisted');
+  const [listingsData, setListingsData] = useState<Listing[]>(
+    Array.isArray(initialListings) ? initialListings : []
+  );
+
+  useEffect(() => {
+    setListingsData(Array.isArray(initialListings) ? initialListings : []);
+  }, [initialListings]);
+
+  const safeListings = Array.isArray(listingsData) ? listingsData : [];
+  const activeListings = safeListings.filter((l) => l?.status === 'active');
+  const soldListings = safeListings.filter((l) => l?.status === 'sold');
+  const delistedListings = safeListings.filter((l) => l?.status === 'delisted');
 
   const activeCount = activeListings.length;
   const isCapReached = activeCount >= 10;
@@ -59,14 +68,24 @@ export default function ProfileDashboard({
     setStatusError(null);
     setActionLoadingId(id);
 
+    // Save previous snapshot for rollback if server update fails
+    const previousListings = [...listingsData];
+
+    // Optimistically update local state for immediate UI feedback
+    setListingsData((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, status: newStatus } : item))
+    );
+
     try {
       const res = await changeListingStatusAction(id, newStatus);
       if (!res.success) {
+        setListingsData(previousListings);
         setStatusError(res.error || 'Failed to update listing status.');
       } else {
         router.refresh();
       }
     } catch (err: any) {
+      setListingsData(previousListings);
       setStatusError(err?.message || 'Failed to update status.');
     } finally {
       setActionLoadingId(null);
@@ -81,14 +100,22 @@ export default function ProfileDashboard({
     setStatusError(null);
     setActionLoadingId(id);
 
+    // Save previous snapshot for rollback if server update fails
+    const previousListings = [...listingsData];
+
+    // Optimistically remove from local state
+    setListingsData((prev) => prev.filter((item) => item.id !== id));
+
     try {
       const res = await deleteListingAction(id);
       if (!res.success) {
+        setListingsData(previousListings);
         setStatusError(res.error || 'Failed to delete listing.');
       } else {
         router.refresh();
       }
     } catch (err: any) {
+      setListingsData(previousListings);
       setStatusError(err?.message || 'Failed to delete listing.');
     } finally {
       setActionLoadingId(null);
@@ -213,7 +240,8 @@ export default function ProfileDashboard({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {currentTabListings.map((item) => {
             const isLoading = actionLoadingId === item.id;
-            const hasImage = item.images && item.images.length > 0 && !!item.images[0];
+            const firstImage = item.images?.[0];
+            const hasImage = Boolean(firstImage);
 
             return (
               <div
@@ -225,8 +253,8 @@ export default function ProfileDashboard({
                   <div className="w-20 h-20 rounded-xl bg-[#f3f5fa] border border-[#e1e6f0] overflow-hidden shrink-0 flex items-center justify-center text-2xl">
                     {hasImage ? (
                       <img
-                        src={item.images[0]}
-                        alt={item.title}
+                        src={firstImage}
+                        alt={item.title || 'Listing'}
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -258,7 +286,7 @@ export default function ProfileDashboard({
                     </h4>
 
                     <div className="text-[16px] font-bold text-[#c8102e] mt-0.5">
-                      {item.price === 0 ? 'Free' : `₹${item.price.toLocaleString('en-IN')}`}
+                      {item.price === 0 ? 'Free' : `₹${Number(item.price || 0).toLocaleString('en-IN')}`}
                     </div>
                   </div>
                 </div>

@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { requireOnboardedUser } from '@/lib/auth/session';
 import { getDatabaseService } from '@/lib/db';
+import { Listing } from '@/lib/db/types';
 import ProfileDashboard from './ProfileDashboard';
 import {
   GraduationCap,
@@ -17,11 +18,17 @@ export const dynamic = 'force-dynamic';
 export default async function ProfilePage() {
   const user = await requireOnboardedUser('/profile');
   const db = getDatabaseService();
-  const listings = await db.getListings({ userId: user.id, viewerId: user.id });
 
-  const initial = user.profile.fullName
-    ? user.profile.fullName.charAt(0).toUpperCase()
-    : user.email.charAt(0).toUpperCase();
+  let listings: Listing[] = [];
+  try {
+    const fetched = await db.getListings({ userId: user.id, viewerId: user.id });
+    listings = Array.isArray(fetched) ? fetched : [];
+  } catch (err) {
+    console.error('Failed to load user listings in ProfilePage:', err);
+    listings = [];
+  }
+
+  const initial = (user.profile?.fullName || user.email || 'U').trim().charAt(0).toUpperCase() || 'U';
 
   return (
     <div className="w-full bg-white min-h-[85vh] py-10 px-4">
@@ -38,7 +45,7 @@ export default async function ProfilePage() {
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <h1 className="text-xl sm:text-2xl font-extrabold text-[#062a6e] tracking-tight">
-                    {user.profile.fullName}
+                    {user.profile?.fullName || user.email}
                   </h1>
                   <span className="inline-flex items-center gap-1 bg-[#0a8a4a]/10 text-[#0a8a4a] px-2.5 py-0.5 rounded-full text-[11px] font-bold">
                     <ShieldCheck className="w-3.5 h-3.5" />
@@ -54,22 +61,28 @@ export default async function ProfilePage() {
 
                 {/* Academic Metadata Chips */}
                 <div className="flex flex-wrap items-center gap-2 mt-2 text-[12px] text-[#14203b]">
-                  <span className="inline-flex items-center gap-1 bg-white px-2.5 py-1 rounded-lg border border-[#e1e6f0]">
-                    <GraduationCap className="w-3.5 h-3.5 text-[#062a6e]" />
-                    <span>{user.profile.course}</span>
-                  </span>
+                  {user.profile?.course && (
+                    <span className="inline-flex items-center gap-1 bg-white px-2.5 py-1 rounded-lg border border-[#e1e6f0]">
+                      <GraduationCap className="w-3.5 h-3.5 text-[#062a6e]" />
+                      <span>{user.profile.course}</span>
+                    </span>
+                  )}
 
-                  <span className="inline-flex items-center gap-1 bg-white px-2.5 py-1 rounded-lg border border-[#e1e6f0]">
-                    <Calendar className="w-3.5 h-3.5 text-[#062a6e]" />
-                    <span>Year {user.profile.year}</span>
-                  </span>
+                  {user.profile?.year && (
+                    <span className="inline-flex items-center gap-1 bg-white px-2.5 py-1 rounded-lg border border-[#e1e6f0]">
+                      <Calendar className="w-3.5 h-3.5 text-[#062a6e]" />
+                      <span>Year {user.profile.year}</span>
+                    </span>
+                  )}
 
-                  <span className="inline-flex items-center gap-1 bg-white px-2.5 py-1 rounded-lg border border-[#e1e6f0]">
-                    <Building className="w-3.5 h-3.5 text-[#062a6e]" />
-                    <span>{user.profile.residence}</span>
-                  </span>
+                  {user.profile?.residence && (
+                    <span className="inline-flex items-center gap-1 bg-white px-2.5 py-1 rounded-lg border border-[#e1e6f0]">
+                      <Building className="w-3.5 h-3.5 text-[#062a6e]" />
+                      <span>{user.profile.residence}</span>
+                    </span>
+                  )}
 
-                  {user.profile.whatsapp && (
+                  {user.profile?.whatsapp && (
                     <span className="inline-flex items-center gap-1 bg-white px-2.5 py-1 rounded-lg border border-[#e1e6f0]">
                       <Phone className="w-3.5 h-3.5 text-[#0a8a4a]" />
                       <span>{user.profile.whatsapp}</span>
@@ -96,7 +109,7 @@ export default async function ProfilePage() {
             </p>
           </div>
 
-          <ProfileDashboard profile={user.profile} initialListings={listings} />
+          <ProfileDashboard profile={user.profile} initialListings={listings || []} />
         </div>
       </div>
     </div>
