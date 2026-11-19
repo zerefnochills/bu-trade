@@ -21,11 +21,6 @@ export default function HomeFeed({ initialListings }: HomeFeedProps) {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
 
-  // Compute active count from initial listings
-  const totalActiveInitial = useMemo(() => {
-    return initialListings.filter((l) => l.status === 'active').length;
-  }, [initialListings]);
-
   // Compute filtered & sorted listings in real time
   const filteredListings = useMemo(() => {
     let result = initialListings.filter((item) => item.status === 'active');
@@ -79,12 +74,6 @@ export default function HomeFeed({ initialListings }: HomeFeedProps) {
       {/* Hero Banner Section */}
       <section className="bg-gradient-to-b from-[#f3f5fa] to-white border-b border-[#e1e6f0] py-12 sm:py-16 px-4">
         <div className="max-w-[1160px] mx-auto text-center">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 bg-white px-3.5 py-1.5 rounded-full border border-[#e1e6f0] shadow-sm mb-5 text-[13px] text-[#062a6e] font-medium">
-            <span className="w-2 h-2 rounded-full bg-[#0a8a4a] animate-pulse" />
-            Bennett University Verified Student Marketplace
-          </div>
-
           {/* Heading */}
           <h1 className="text-3xl sm:text-5xl font-extrabold text-[#062a6e] tracking-tight leading-tight max-w-3xl mx-auto mb-4">
             Buy & sell on campus with students you <span className="text-[#c8102e]">trust</span>.
@@ -96,7 +85,7 @@ export default function HomeFeed({ initialListings }: HomeFeedProps) {
           </p>
 
           {/* Live Hero Search Bar */}
-          <div className="max-w-2xl mx-auto flex flex-col sm:flex-row items-center gap-2 p-1.5 rounded-2xl bg-white border border-[#e1e6f0] shadow-[0_8px_24px_rgba(6,42,110,0.08)] mb-6">
+          <div className="max-w-2xl mx-auto flex flex-col sm:flex-row items-center gap-2 p-1.5 rounded-2xl bg-white border border-[#e1e6f0] shadow-[0_8px_24px_rgba(6,42,110,0.08)]">
             <div className="relative flex-1 w-full">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#5a6580]" />
               <input
@@ -125,26 +114,6 @@ export default function HomeFeed({ initialListings }: HomeFeedProps) {
                 <PlusCircle className="w-4 h-4" />
                 <span>+ Sell</span>
               </Link>
-            </div>
-          </div>
-
-          {/* Floating Stats Bar */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl mx-auto pt-4 text-left">
-            <div className="bg-white/80 p-3 rounded-xl border border-[#e1e6f0] shadow-xs">
-              <div className="text-[20px] font-bold text-[#062a6e]">{totalActiveInitial}</div>
-              <div className="text-[12px] text-[#5a6580] font-medium">Items listed</div>
-            </div>
-            <div className="bg-white/80 p-3 rounded-xl border border-[#e1e6f0] shadow-xs">
-              <div className="text-[20px] font-bold text-[#062a6e]">8</div>
-              <div className="text-[12px] text-[#5a6580] font-medium">Categories</div>
-            </div>
-            <div className="bg-white/80 p-3 rounded-xl border border-[#e1e6f0] shadow-xs">
-              <div className="text-[20px] font-bold text-[#062a6e]">₹0</div>
-              <div className="text-[12px] text-[#5a6580] font-medium">Platform fees</div>
-            </div>
-            <div className="bg-white/80 p-3 rounded-xl border border-[#e1e6f0] shadow-xs">
-              <div className="text-[20px] font-bold text-[#062a6e]">10 max</div>
-              <div className="text-[12px] text-[#5a6580] font-medium">Active per student</div>
             </div>
           </div>
         </div>
