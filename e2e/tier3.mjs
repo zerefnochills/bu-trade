@@ -680,3 +680,297 @@ registerTest(3, 'T3.10', 'Post-Transaction Feedback Loop: Unlock contact -> Mark
   assert.ok(feedback.createdAt);
   assert.equal(new Date(feedback.createdAt).toString() !== 'Invalid Date', true);
 });
+
+/* -------------------------------------------------------------------------- */
+/*         TIER 3 PAIRWISE COMBINATIONS: NEW FEATURE INTERACTIONS             */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * T3.11: Multi-User Voting State Machine Transitions
+ * Interaction: Multi-user concurrent upvote, downvote, toggle flip, toggle off, and net score calculation
+ */
+registerTest(3, 'T3.11', 'Multi-User Voting State Machine: Concurrent upvote, downvote, toggle flip, and net score recalculation', async (harness) => {
+  const authorId = 'student_t3_author';
+  const voterA = 'student_t3_voter_a';
+  const voterB = 'student_t3_voter_b';
+
+  // 1. Author posts feedback for bought Casio calculator
+  const post = await harness.createFeedbackPost({
+    userId: authorId,
+    itemTitle: 'Casio fx-991EX Calculator',
+    content: 'Lifesaver for Calculus mid-sems! Very fast matrix calculations.',
+    rating: 5,
+    images: ['data:image/webp;base64,calc1']
+  });
+  assert.equal(post.score, 0);
+  assert.equal(post.upvotesCount, 0);
+  assert.equal(post.downvotesCount, 0);
+
+  // 2. Student A upvotes (+1)
+  const resA1 = await harness.voteFeedbackPost(post.id, voterA, 1);
+  assert.equal(resA1.score, 1);
+  assert.equal(resA1.userVote, 1);
+  assert.equal(resA1.upvotesCount, 1);
+  assert.equal(resA1.downvotesCount, 0);
+
+  // 3. Student B downvotes (-1)
+  const resB1 = await harness.voteFeedbackPost(post.id, voterB, -1);
+  assert.equal(resB1.score, 0);
+  assert.equal(resB1.userVote, -1);
+  assert.equal(resB1.upvotesCount, 1);
+  assert.equal(resB1.downvotesCount, 1);
+
+  // 4. Student A toggles to downvote (-1): flip +1 -> -1 (score should drop by 2 to -2)
+  const resA2 = await harness.voteFeedbackPost(post.id, voterA, -1);
+  assert.equal(resA2.score, -2);
+  assert.equal(resA2.userVote, -1);
+  assert.equal(resA2.upvotesCount, 0);
+  assert.equal(resA2.downvotesCount, 2);
+
+  // 5. Student B toggles off downvote (-1 -> 0): removes vote (score recovers to -1)
+  const resB2 = await harness.voteFeedbackPost(post.id, voterB, -1);
+  assert.equal(resB2.score, -1);
+  assert.equal(resB2.userVote, 0);
+  assert.equal(resB2.upvotesCount, 0);
+  assert.equal(resB2.downvotesCount, 1);
+
+  // 6. Verify feed query joins reflect accurate viewer vote state
+  const viewForA = await harness.getFeedbackPostById(post.id, voterA);
+  assert.equal(viewForA.score, -1);
+  assert.equal(viewForA.userVote, -1);
+
+  const viewForB = await harness.getFeedbackPostById(post.id, voterB);
+  assert.equal(viewForB.score, -1);
+  assert.equal(viewForB.userVote, 0);
+
+  // Invariant verification: score === upvotesCount - downvotesCount
+  assert.equal(viewForA.score, viewForA.upvotesCount - viewForA.downvotesCount);
+});
+
+/**
+ * T3.12: Trade/Borrow Request Lifecycle & Filter Consistency
+ * Interaction: active -> fulfilled lifecycle with category and requestType filter consistency
+ */
+registerTest(3, 'T3.12', 'Trade/Borrow Request Lifecycle: Active to Fulfilled lifecycle with filter consistency', async (harness) => {
+  const requesterId = 'student_t3_12_req';
+
+  // 1. Student creates borrow request for lab coat
+  const req = await harness.createTradeBorrowRequest({
+    userId: requesterId,
+    title: 'Lab Coat Size M for Friday Practical',
+    description: 'Needed for Biotech lab practical from 2pm to 5pm.',
+    requestType: 'borrow',
+    duration: '1 day',
+    category: 'Stationery & lab gear',
+    contactMethod: 'WhatsApp',
+    contactValue: '9876543210'
+  });
+  assert.ok(req.id);
+  assert.equal(req.status, 'active');
+
+  // 2. Discoverable in active feed and category filter
+  const activeBorrowFeed = await harness.getTradeBorrowRequests({
+    type: 'borrow',
+    status: 'active'
+  });
+  assert.ok(activeBorrowFeed.some(r => r.id === req.id));
+
+  const categoryFeed = await harness.getTradeBorrowRequests({
+    category: 'Stationery & lab gear',
+    status: 'active'
+  });
+  assert.ok(categoryFeed.some(r => r.id === req.id));
+
+  // Excluded from 'trade' type filter
+  const tradeFeed = await harness.getTradeBorrowRequests({
+    type: 'trade'
+  });
+  assert.ok(!tradeFeed.some(r => r.id === req.id));
+
+  // 3. Senior lends coat; requester marks status as 'fulfilled'
+  const fulfilledReq = await harness.updateTradeBorrowRequestStatus(req.id, 'fulfilled', requesterId);
+  assert.equal(fulfilledReq.status, 'fulfilled');
+
+  // 4. Verified filter consistency: removed from active feed, present in fulfilled feed
+  const postActiveFeed = await harness.getTradeBorrowRequests({
+    status: 'active'
+  });
+  assert.ok(!postActiveFeed.some(r => r.id === req.id), 'Fulfilled request must not appear in active feed');
+
+  const fulfilledFeed = await harness.getTradeBorrowRequests({
+    status: 'fulfilled'
+  });
+  assert.ok(fulfilledFeed.some(r => r.id === req.id), 'Fulfilled request must be present in fulfilled filter');
+
+  // 5. Requester deletes request permanently
+  const deleted = await harness.deleteTradeBorrowRequest(req.id, requesterId);
+  assert.equal(deleted, true);
+
+  const postDeleteFeed = await harness.getTradeBorrowRequests({
+    status: 'fulfilled'
+  });
+  assert.ok(!postDeleteFeed.some(r => r.id === req.id));
+});
+
+/**
+ * T3.13: Listing + Feedback Cross-Referencing
+ * Interaction: Sold listing transaction followed by linked feedback post creation with image and peer upvoting
+ */
+registerTest(3, 'T3.13', 'Listing + Feedback Cross-Referencing: Bought item sold lifecycle, linked feedback creation, and peer endorsement', async (harness) => {
+  const sellerId = 'seller_t3_13';
+  const buyerId = 'buyer_t3_13';
+  const peerId = 'peer_t3_13';
+
+  // 1. Seller lists Hero Sprint cycle for ₹3,800
+  const listing = await harness.createListing({
+    userId: sellerId,
+    title: 'Hero Sprint cycle 21-speed mint condition',
+    price: 3800,
+    category: 'Cycles & transport',
+    contactMethod: 'WhatsApp',
+    contactValue: '9876543210'
+  });
+
+  // 2. Buyer enquires, unlocks contact, and completes purchase
+  await harness.createEnquiry({ listingId: listing.id, buyerId, message: 'Interested in buying today!' });
+  const soldListing = await harness.updateListing(listing.id, { status: 'sold' }, sellerId);
+  assert.equal(soldListing.status, 'sold');
+
+  // 3. Buyer creates Feedback Post referencing the bought listing ID
+  const feedbackPost = await harness.createFeedbackPost({
+    userId: buyerId,
+    itemTitle: 'Hero Sprint Cycle 21-Speed',
+    content: 'Bought this cycle from Aarav. Excellent condition, smooth gear shifting across campus!',
+    rating: 5,
+    images: ['data:image/webp;base64,cycle_bought_proof'],
+    listingId: listing.id
+  });
+  assert.ok(feedbackPost.id);
+  assert.equal(feedbackPost.listingId, listing.id);
+  assert.equal(feedbackPost.rating, 5);
+
+  // 4. Peer discovers feedback post in campus feed and upvotes it
+  const voteRes = await harness.voteFeedbackPost(feedbackPost.id, peerId, 1);
+  assert.equal(voteRes.score, 1);
+  assert.equal(voteRes.userVote, 1);
+
+  // 5. Verification: Feed lists feedback with score 1, linked listing ID, and verified rating
+  const feed = await harness.getFeedbackPosts({ viewerId: peerId });
+  const retrieved = feed.find(f => f.id === feedbackPost.id);
+  assert.ok(retrieved);
+  assert.equal(retrieved.listingId, listing.id);
+  assert.equal(retrieved.score, 1);
+  assert.equal(retrieved.userVote, 1);
+  assert.equal(retrieved.rating, 5);
+});
+
+/**
+ * T3.14: Cross-Request Type Isolation (Borrow vs Trade)
+ * Interaction: Concurrent borrow and trade requests, search filtering, and type segregation
+ */
+registerTest(3, 'T3.14', 'Cross-Request Type Isolation: Bidirectional trade/borrow requests, concurrent status lifecycles, and combined feed indexing', async (harness) => {
+  const studentA = 'student_t3_14_a';
+  const studentB = 'student_t3_14_b';
+
+  // 1. Student A posts a trade request
+  const tradeReq = await harness.createTradeBorrowRequest({
+    userId: studentA,
+    title: 'Swap Data Structures Cormen for Operating Systems Galvin',
+    description: 'Looking to trade 3rd sem textbook for 4th sem textbook.',
+    requestType: 'trade',
+    duration: '1 semester',
+    category: 'Books & notes',
+    contactMethod: 'WhatsApp',
+    contactValue: '9812345678'
+  });
+
+  // 2. Student B posts a borrow request
+  const borrowReq = await harness.createTradeBorrowRequest({
+    userId: studentB,
+    title: 'Need Casio Scientific Calculator for Mid-sems',
+    description: 'Need calculator for 3 days exam week.',
+    requestType: 'borrow',
+    duration: '3 days',
+    category: 'Electronics',
+    contactMethod: 'Phone',
+    contactValue: '9876543210'
+  });
+
+  // 3. Verify type isolation
+  const tradeOnly = await harness.getTradeBorrowRequests({ type: 'trade' });
+  assert.ok(tradeOnly.some(r => r.id === tradeReq.id));
+  assert.ok(!tradeOnly.some(r => r.id === borrowReq.id));
+
+  const borrowOnly = await harness.getTradeBorrowRequests({ type: 'borrow' });
+  assert.ok(borrowOnly.some(r => r.id === borrowReq.id));
+  assert.ok(!borrowOnly.some(r => r.id === tradeReq.id));
+
+  // 4. Combined query returns both
+  const allRequests = await harness.getTradeBorrowRequests({ type: 'all' });
+  assert.ok(allRequests.some(r => r.id === tradeReq.id));
+  assert.ok(allRequests.some(r => r.id === borrowReq.id));
+
+  // 5. Keyword search across both types
+  const searchResults = await harness.getTradeBorrowRequests({ search: 'Mid-sems' });
+  assert.equal(searchResults.length, 1);
+  assert.equal(searchResults[0].id, borrowReq.id);
+
+  const searchTrade = await harness.getTradeBorrowRequests({ search: 'Galvin' });
+  assert.equal(searchTrade.length, 1);
+  assert.equal(searchTrade[0].id, tradeReq.id);
+});
+
+/**
+ * T3.15: Profile Listing Cap & Mixed Price Formatting Interplay
+ * Interaction: Mixed free and priced items lifecycle, cap 10/10 enforcement, and profile formatting consistency
+ */
+registerTest(3, 'T3.15', 'Profile Listing Cap & Price Formatting Interplay: Mixed free/priced inventory lifecycle and cap enforcement', async (harness) => {
+  const sellerId = 'seller_t3_15_cap';
+
+  // 1. Create 9 mixed listings (alternating priced ₹500 and free ₹0)
+  const createdListings = [];
+  for (let i = 1; i <= 9; i++) {
+    const isFree = i % 2 === 0;
+    const item = await harness.createListing({
+      userId: sellerId,
+      title: `Inventory Item ${i}`,
+      price: isFree ? 0 : 500,
+      category: 'Other'
+    });
+    createdListings.push(item);
+  }
+  assert.equal(await harness.countActiveListings(sellerId), 9);
+
+  // 2. 10th listing created as free item
+  const item10 = await harness.createListing({
+    userId: sellerId,
+    title: 'Free Semester Lab Notes Bundle',
+    price: 0,
+    category: 'Books & notes'
+  });
+  assert.equal(harness.formatPrice(item10.price), 'Free');
+  assert.equal(await harness.countActiveListings(sellerId), 10);
+
+  // 3. 11th listing attempt rejected by cap
+  await assert.rejects(async () => {
+    await harness.createListing({
+      userId: sellerId,
+      title: 'Item 11 Over Cap',
+      price: 100
+    });
+  }, /Active listing limit of 10 reached/);
+
+  // 4. Seller marks one item as sold
+  await harness.updateListing(createdListings[0].id, { status: 'sold' }, sellerId);
+  assert.equal(await harness.countActiveListings(sellerId), 9);
+
+  // 5. 11th listing creation now succeeds as priced item
+  const item11 = await harness.createListing({
+    userId: sellerId,
+    title: 'Replacement Scientific Calculator',
+    price: 850,
+    category: 'Electronics'
+  });
+  assert.equal(harness.formatPrice(item11.price), '₹850');
+  assert.equal(await harness.countActiveListings(sellerId), 10);
+});
