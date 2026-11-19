@@ -27,11 +27,11 @@ export function middleware(request: NextRequest) {
       (session?.onboardingNeeded === false || session?.isOnboarded === true)
   );
 
-  const isProtectedPath = pathname.startsWith('/sell') || pathname.startsWith('/profile');
+  const isProtectedPath = pathname.startsWith('/profile') || pathname.includes('/edit');
   const isOnboardingPath = pathname === '/onboarding';
   const isLoginPath = pathname === '/login';
 
-  // 1. Protected paths (/sell, /profile): require authentication + completed onboarding
+  // 1. Protected paths (/profile, /sell/:id/edit): require authentication + completed onboarding
   if (isProtectedPath) {
     if (!isUserAuthenticated) {
       const loginUrl = new URL('/login', request.url);
@@ -76,5 +76,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/sell/:path*', '/profile/:path*', '/onboarding', '/login'],
+  matcher: ['/profile/:path*', '/sell/:id/edit', '/onboarding', '/login'],
 };
