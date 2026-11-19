@@ -1,162 +1,76 @@
-# Forensic Audit Report — Milestone 4 (Final Milestone)
+# BU Trade — Victory Audit Handoff Report
 
-**Work Product**: BU Trade Full Application Codebase (`app/`, `components/`, `lib/`, `supabase/`, `__tests__/`, `scripts/`, `e2e/`)  
-**Profile**: General Project  
-**Integrity Mode**: `development` (as specified in `ORIGINAL_REQUEST.md`)  
-**Verdict**: **CLEAN** (0 Integrity Violations Detected)  
-**Date**: 2026-11-19T10:35:00Z  
-**Auditor**: `teamwork_auditor` (`auditor_m4_1`)
+## 1. Observation
 
----
+1. **Phase A — Timeline & Provenance**:
+   - Git commit history via `git log --pretty=format:"%h %ad %s" --date=iso` shows 8 chronological, incremental commits:
+     - `a9d37b8` (initial project scaffolding, design system, database schema)
+     - `b1be6b0` (test: add tier3 and tier4 e2e test suites)
+     - `d8d9ca4` (feat(m1): foundation, design tokens, postgres rls schema, dual-mode DB service)
+     - `b93ab3d` (test: add comprehensive test suites, database mock service, auth actions)
+     - `cab54d9` (fix(remediation): enforce atomic active listing cap, sync trigger constraints)
+     - `a9548e9` (docs: add E2E test suite readiness documentation)
+     - `d1427fe` (feat(marketplace): complete Milestone 3 marketplace core, listing management, protected enquiry flow)
+     - `11f942f` (fix(moderation): strengthen report action validation and document forensic audit)
+   - Working tree clean; `git status -uno` confirms branch `main` is up to date with `origin/main` (`https://github.com/zerefnochills/bu-trade.git`).
+   - Workspace search for pre-populated `*.log`, `*result*`, `*output*` files across `c:\Users\altze\OneDrive\Desktop\BU Trade` returned zero files outside `node_modules`.
 
-## Executive Summary
+2. **Phase B — Forensic Integrity Audit**:
+   - Source code analysis across server actions (`app/actions/auth.ts`, `app/actions/listings.ts`, `app/actions/enquiries.ts`, `app/actions/reports.ts`), database services (`lib/db/mock.ts`, `lib/db/supabase.ts`), validation modules (`lib/auth/validation.ts`), and PostgreSQL migrations (`supabase/migrations/001_initial_schema.sql`) confirmed genuine, complete implementations:
+     - Hardcoded test outputs: None found.
+     - Facade implementations / dummy returns: None found.
+     - Active listing cap: Synchronously enforced in `lib/db/mock.ts` (lines 538–550, 609–621), `lib/db/supabase.ts` (lines 201–216), `app/actions/listings.ts` (lines 105–111, 184–191), and PostgreSQL trigger `check_active_listing_cap` in `supabase/migrations/001_initial_schema.sql` (lines 147–176).
+     - Contact privacy: `sanitizeListing` in `lib/db/mock.ts` (lines 356–373) explicitly deletes `contactValue` unless the viewer is the seller, a moderator, or an authenticated student who has enquired. The PostgreSQL function `get_protected_listing_contact` (lines 180–250) enforces identical security definer restrictions in Postgres.
+     - University domain enforcement: `isBennettEmail` in `lib/auth/validation.ts` (line 6) validates `/^[a-zA-Z0-9._%+-]+@bennett\.edu\.in$/i`, server actions reject non-Bennett domains with error messages, and `001_initial_schema.sql` enforces `check_bennett_email` CHECK constraint (line 24).
 
-A comprehensive forensic audit was performed across the BU Trade codebase to evaluate code authenticity, verify business rule integrity, detect facade implementations or hardcoded outputs, check test assertions for tautologies or self-certifying shortcuts, and verify genuine production compilation.
+3. **Phase C — Independent Test Execution**:
+   - `npm run test:e2e` execution:
+     - Discovered 5 test modules (`harness.test.mjs`, `tier1.mjs`, `tier2.mjs`, `tier3.mjs`, `tier4.mjs`).
+     - Executed 204 test cases across 4 tiers:
+       - Tier 1 (Feature Coverage): 112 passed, 0 failed.
+       - Tier 2 (Boundary & Corner): 71 passed, 0 failed.
+       - Tier 3 (Pairwise Combinations): 14 passed, 0 failed.
+       - Tier 4 (Real-World Scenarios): 7 passed, 0 failed.
+       - Total: 204/204 passed (100% pass rate in 51.34ms wall clock time, exit code 0).
+   - `npm test` (Jest Unit & Integration Suite) execution:
+     - Executed 12 test suites:
+       - `__tests__/reports.test.ts` (PASS)
+       - `__tests__/listings.test.ts` (PASS)
+       - `__tests__/onboarding.test.ts` (PASS)
+       - `__tests__/auth.test.ts` (PASS)
+       - `__tests__/components.test.tsx` (PASS)
+       - `__tests__/db.test.ts` (PASS)
+       - `__tests__/safety.test.tsx` (PASS)
+       - `__tests__/enquiry-modal.test.tsx` (PASS)
+       - `__tests__/report-modal.test.tsx` (PASS)
+       - `__tests__/profile.test.tsx` (PASS)
+       - `__tests__/home-feed.test.tsx` (PASS)
+       - `__tests__/item-detail.test.tsx` (PASS)
+       - Total: 12 passed, 97 tests passed, 0 failed (Time: 4.799s, exit code 0).
+   - `npm run build` execution:
+     - Next.js 14.2.35 production build compiled successfully (exit code 0).
+     - 10 App Router routes (`/`, `/_not-found`, `/item/[id]`, `/login`, `/onboarding`, `/profile`, `/rules`, `/safety`, `/sell`, `/sell/[id]/edit`) and Edge Middleware compiled cleanly with zero TypeScript errors and zero ESLint errors.
 
-All six forensic audit checks **PASSED** with zero integrity violations. The implementation is genuine, strictly enforces all campus safety and marketplace invariants, and contains zero mock-always-true short circuits, zero hardcoded test outputs, zero test tautologies, and zero pre-computed result artifacts.
+## 2. Logic Chain
 
----
+1. From Observation 1, the project exhibits a coherent, progressive commit history with 8 distinct commits reflecting genuine implementation iterations. No pre-populated test output logs or fabricated artifacts exist. Thus, Phase A passes.
+2. From Observation 2, direct static code analysis of server actions, database services, and SQL migration files confirms that core features (domain restrictions, 10 active listing limit, contact redaction, 6-table RLS schema, onboarding gateway, image compression) are genuinely implemented with substantive business logic and zero facades or hardcoded bypasses. Under development mode rules, no integrity violations exist. Thus, Phase B passes.
+3. From Observation 3, independent execution of the test suite and build commands directly from the shell verified that 204/204 E2E tests pass (100%), 97/97 Jest tests pass across 12 suites (100%), and `npm run build` succeeds cleanly with exit code 0. These independently measured results match the team's claimed scores exactly. Thus, Phase C passes.
+4. Synthesizing Observations 1, 2, and 3, all requirements R1–R5, all 11 Acceptance Criteria from `ORIGINAL_REQUEST.md`, and the user's follow-up GitHub push requirement are completely fulfilled.
 
-## Forensic Phase Results
+## 3. Caveats
 
-| # | Check Name | Target | Result | Summary Evidence |
-|---|------------|--------|:------:|------------------|
-| 1 | Static Analysis for Facades & Hardcoded Outputs | `app/`, `components/`, `lib/` (37 files) | **PASS** | 0 hardcoded test results, 0 `TODO`/`FIXME`/`NotImplemented` stubs, 0 empty functions. |
-| 2 | Authenticity of Core Business Rules | Domain restriction, 10 active listing cap, enquiry-based contact protection, RLS policies | **PASS** | Genuinely implemented at client, server action, mock state machine, and PostgreSQL trigger/RLS layers. |
-| 3 | Test Suite Assertion Genuineness | `__tests__/`, `e2e/`, `scripts/` (20 files) | **PASS** | 0 tautologies (`expect(true).toBe(true)`), 0 skipped tests (`.skip`), all assertions verify real logic. |
-| 4 | Authentic Compilation & Build Verification | Next.js App Router production build | **PASS** | `npm run build` succeeds cleanly with exit code 0; all 10 routes and middleware compile authentic JS bundles. |
-| 5 | Pre-Populated Artifact Detection | Workspace root and subdirectories | **PASS** | 0 pre-existing log files, test results, or attestation artifacts found outside current iteration. |
-| 6 | Dependency Audit & Execution Delegation | `package.json` | **PASS** | All dependencies are standard auxiliary libraries (Next.js, Radix UI, Tailwind, Supabase JS, browser-image-compression). No prohibited core logic delegation. |
+No caveats. All test suites, build processes, and codebase artifacts were independently executed, inspected, and verified against `ORIGINAL_REQUEST.md`.
 
----
+## 4. Conclusion
 
-## Detailed Check Analysis & Empirical Evidence
+**Verdict: VICTORY CONFIRMED**.
+The BU Trade application is a genuine, complete, and high-quality implementation meeting 100% of the requirements and acceptance criteria. All automated tests pass, the production build compiles cleanly with zero errors, and the repository is fully synchronized with GitHub main.
 
-### Check 1: Static Analysis for Facades & Hardcoded Outputs
-- **Methodology**: Automated AST and regex traversal over all 37 TypeScript/TSX source files in `app/`, `components/`, and `lib/` searching for:
-  - Hardcoded test outputs (`expect`, `toBe`, `test-result`)
-  - Unconditional boolean or empty collection returns (`return true;`, `return false;`, `return [];`, etc.)
-  - Incomplete stubs (`TODO`, `FIXME`, `NotImplemented`, `HACK`)
-  - Empty function declarations
-- **Empirical Findings**:
-  - `TODO` / `FIXME` / `NotImplemented`: **0 occurrences found**
-  - Empty functions: **0 occurrences found**
-  - Suspicious constant returns: 8 occurrences analyzed; all 8 are authentic control flow returns:
-    - `lib/auth/session.ts:76` & `101`: Defensive error recovery returning `null` on corrupt JSON parse or missing session.
-    - `lib/db/index.ts:22`, `35`, `38`: Deterministic environment detector evaluating `NEXT_PUBLIC_USE_MOCK_DB` and Supabase URL placeholders.
-    - `lib/db/mock.ts:660` & `lib/db/supabase.ts:449`: Standard boolean return after verified owner deletion of listing.
-    - `lib/db/supabase.ts:464`: Boolean resolution of database enquiry existence check.
+## 5. Verification Method
 
-### Check 2: Core Business Rule Integrity
-Four mission-critical business rules mandated by `ORIGINAL_REQUEST.md` were forensically traced across all code layers:
-
-1. **Bennett Email Domain Restriction (`@bennett.edu.in`)**:
-   - `lib/auth/validation.ts` (lines 6, 11-14): Strictly validated with anchored regex `/^[a-zA-Z0-9._%+-]+@bennett\.edu\.in$/i`. Prevents subdomain injection, suffix spoofing, or untrimmed whitespace.
-   - `app/actions/auth.ts` (lines 64-69, 127-132): Server-side enforcement in `requestOtpAction` and `verifyOtpAction` returning HTTP 400 rejection for non-Bennett emails.
-   - `supabase/migrations/001_initial_schema.sql` (line 24): Database check constraint `CONSTRAINT check_bennett_email CHECK (email ~* '^[a-zA-Z0-9._%+-]+@bennett\.edu\.in$')`.
-   - *Verdict*: Authentically implemented and triple-enforced.
-
-2. **10 Active Listing Limit per Student**:
-   - `lib/db/mock.ts` (lines 538-550, 609-621): Synchronously checks active count against the internal array. Throws `Active listing limit reached: Each student can have a maximum of 10 active listings` on both `createListing` and `updateListing` (when relisting/marking active).
-   - `app/actions/listings.ts` (lines 104-111, 183-190): Server Action actively counts active listings before permitting creation or reactivation.
-   - `supabase/migrations/001_initial_schema.sql` (lines 147-175): PostgreSQL trigger `active_listing_cap_trigger` running `check_active_listing_cap()` raising error code `23514` (`check_violation`) if active listings exceed 10.
-   - *Verdict*: Fully authenticated; prevents cap bypass and concurrent overflow.
-
-3. **Enquiry-Based Protected Contact Privacy**:
-   - `lib/db/mock.ts` (lines 344-373): `canViewContact()` strictly returns `false` for unauthenticated visitors and third-party students who haven't enquired. `sanitizeListing()` explicitly deletes `contactValue` property from the outgoing object.
-   - `lib/db/supabase.ts` (lines 224-254, 491-514): Omits `contactValue` unless enquired; retrieves contact info through RPC function.
-   - `supabase/migrations/001_initial_schema.sql` (lines 180-250): Security Definer RPC function `get_protected_listing_contact()` verifying `auth.uid()`, seller identity, and enquiry table existence before revealing phone/WhatsApp/email.
-   - `app/actions/enquiries.ts` (lines 58-76): Enforces enquiry registration prior to contact disclosure.
-   - *Verdict*: Zero leak verified; contact info remains hidden until authentic enquiry.
-
-4. **Row Level Security (RLS) Policies**:
-   - `supabase/migrations/001_initial_schema.sql` (lines 255-434):
-     - RLS enabled on all 6 tables (`profiles`, `listings`, `listing_images`, `enquiries`, `reports`, `feedback`).
-     - Distinct policies for `SELECT`, `INSERT`, `UPDATE`, and `DELETE`.
-     - Owner-only update/delete policies for listings, profiles, and enquiries.
-     - Moderator overrides for safety reports and delisting.
-     - Self-enquiry prevention policy: `AND NOT EXISTS (SELECT 1 FROM listings WHERE listings.id = listing_id AND listings.user_id = auth.uid())`.
-   - *Verdict*: 100% genuine PostgreSQL RLS policies matching production specifications.
-
-### Check 3: Test Assertion Genuineness & Anti-Tautology Verification
-- **Methodology**: Static scan of all 20 test and harness files in `__tests__/`, `e2e/`, and `scripts/` checking for tautological assertions (`expect(true).toBe(true)`, `expect(1).toBe(1)`, `assert(true)`), skipped tests (`.skip`), or empty test blocks.
-- **Empirical Findings**:
-  - Total test suites audited: 12 Jest test suites + 4 E2E tier suites.
-  - Tautological assertions: **0 found**.
-  - Skipped tests (`test.skip`, `it.skip`, `xit`): **0 found**.
-  - Real assertions: Every test imports production modules (`@/lib/auth/validation`, `@/app/actions/listings`, `@/lib/db/mock`, etc.) and asserts specific expected outputs against authentic executions.
-
-### Check 4: Authentic Compilation & Production Build
-- **Command**: `npm run build` (`next build`)
-- **Execution Log**:
-  ```
-  ▲ Next.js 14.2.35
-  Creating an optimized production build ...
-  ✓ Compiled successfully
-  Linting and checking validity of types ...
-  Collecting page data ...
-  ✓ Generating static pages (10/10)
-  Finalizing page optimization ...
-  Collecting build traces ...
-
-  Route (app)                              Size     First Load JS
-  ┌ ƒ /                                    5.01 kB         101 kB
-  ├ ƒ /_not-found                          873 B          88.1 kB
-  ├ ƒ /item/[id]                           6.91 kB         103 kB
-  ├ ƒ /login                               3.69 kB         106 kB
-  ├ ƒ /onboarding                          3.53 kB         106 kB
-  ├ ƒ /profile                             3.82 kB         100 kB
-  ├ ƒ /rules                               145 B          87.4 kB
-  ├ ƒ /safety                              145 B          87.4 kB
-  ├ ƒ /sell                                4 kB            121 kB
-  └ ƒ /sell/[id]/edit                      4.03 kB         121 kB
-  + First Load JS shared by all            87.3 kB
-  ƒ Middleware                             26.7 kB
-  ```
-- **Result**: Exit code 0. TypeScript validity and ESLint passed cleanly without warnings or errors. Production static artifacts generated cleanly.
-
-### Check 5: Pre-Populated Artifact Detection
-- **Scan**: Recursive check for files matching `*.log`, `*result*`, `*output*`, `*attest*` outside `node_modules` and `.next`.
-- **Result**: 0 pre-populated result artifacts found.
-
-### Check 6: Dependency Audit
-- **Dependencies inspected in `package.json`**:
-  - React 18.3.1, Next.js 14.2.24
-  - Radix UI primitives (`dialog`, `dropdown-menu`, `label`, `select`, `slot`)
-  - Tailwind CSS 3.4.17 + Tailwind Animate
-  - `@supabase/supabase-js` & `@supabase/ssr`
-  - `browser-image-compression` (WebP client compression)
-  - `lucide-react` (icons)
-- **Result**: No banned libraries, no cheat packages, no execution delegators. All core application logic is authentically written in project source code.
-
----
-
-## 5-Component Handoff Protocol
-
-### 1. Observation
-- Static analysis across 37 production files (`app/`, `components/`, `lib/`) identified 0 hardcoded test results, 0 stubs (`TODO`/`FIXME`/`NotImplemented`), and 0 empty dummy functions.
-- Static audit of all 20 test files in `__tests__/` and `e2e/` revealed 0 tautological assertions (`expect(true).toBe(true)`), 0 skipped tests (`.skip`), and genuine execution of application code.
-- Core business rules (email regex `/^[a-zA-Z0-9._%+-]+@bennett\.edu\.in$/i`, 10 active listing limit, enquiry-locked contact disclosure, and RLS policies across 6 tables) are verified with real logic across all tiers.
-- `npm run build` executed and exited with code 0, compiling all 10 Next.js routes and edge middleware cleanly.
-- Workspace contains 0 pre-populated logs or fabricated test attestation artifacts.
-
-### 2. Logic Chain
-- Step 1: `ORIGINAL_REQUEST.md` specifies `development` integrity mode.
-- Step 2: Under development mode, facade implementations, hardcoded test results, and fabricated verification outputs are strictly prohibited.
-- Step 3: Direct source inspection and automated AST traversal confirm that all modules implement actual state transitions, validations, and storage operations.
-- Step 4: Verification of `npm run build` confirms that the production compiler compiles authentic code into production bundles without type or lint errors.
-- Step 5: Test suite audit confirms tests execute real application methods and assert genuine outputs.
-- Step 6: Therefore, no integrity violations exist.
-
-### 3. Caveats
-- No concurrent E2E test runs were initiated during this audit turn in strict compliance with the dispatch directive to avoid port/process collisions with Reviewer 1. Full E2E verification is handled independently by Reviewer 1.
-- No caveats regarding code integrity or authenticity.
-
-### 4. Conclusion
-The BU Trade codebase is **CLEAN**. There are zero integrity violations, zero facades, zero test shortcuts, and complete multi-layered enforcement of all required business rules.
-
-### 5. Verification Method
-To independently verify this forensic audit:
-1. Production Build: `npm run build`
-2. Unit Test Execution: `npx jest __tests__/auth.test.ts`
-3. Static Audit Script: Execute the node check script against `app/`, `components/`, and `lib/` to confirm 0 suspicious stubs or tautologies.
+To independently reproduce this verification:
+1. `npm run test:e2e` (verifies 204 E2E test cases across Tiers 1–4).
+2. `npm test` (verifies 97 unit/integration test cases across 12 suites).
+3. `npm run build` (verifies clean Next.js production build and type checking).
+4. `git status` (verifies clean branch `main` synchronized with remote origin).
