@@ -264,7 +264,7 @@ describe('Profile Dashboard Component', () => {
       images: [],
     };
 
-    render(
+    const { container } = render(
       <ProfileDashboard
         profile={mockProfile}
         initialListings={[listingWithoutImages]}
@@ -272,8 +272,8 @@ describe('Profile Dashboard Component', () => {
     );
 
     expect(screen.getByText('Lab Notebook')).toBeInTheDocument();
-    // Placeholder emoji displayed
-    expect(screen.getByText('🏷️')).toBeInTheDocument();
+    // Placeholder icon displayed
+    expect(container.querySelector('svg.lucide-tag')).toBeInTheDocument();
     // No img element rendered
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
   });

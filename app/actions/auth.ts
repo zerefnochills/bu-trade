@@ -338,3 +338,48 @@ export async function signOutAction(): Promise<ActionResponse<void>> {
     };
   }
 }
+
+/**
+ * Quick 1-click verified campus demo sign-in for development & testing.
+ */
+export async function demoLoginAction(
+  redirectTo?: string
+): Promise<ActionResponse<{ session: UserSession }>> {
+  try {
+    const email = 'student@bennett.edu.in';
+    const db = getDatabaseService();
+    let profile = await db.getProfileByEmail(email);
+    if (!profile) {
+      profile = await db.createProfile({
+        id: 'user_bennett_student',
+        email,
+        fullName: 'Bennett Student',
+        course: 'B.Tech CSE',
+        year: 2,
+        residence: 'Hostel',
+        whatsapp: '+91 98765 43210',
+      });
+    }
+
+    const session = await createSession({
+      userId: profile.id,
+      email: profile.email,
+      onboardingNeeded: false,
+    });
+
+    safeRevalidate('/');
+    safeRevalidate('/sell');
+    safeRevalidate('/profile');
+
+    return {
+      success: true,
+      redirectTo: redirectTo || '/sell',
+      data: { session },
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      error: err?.message || 'Failed to sign in with demo student account.',
+    };
+  }
+}

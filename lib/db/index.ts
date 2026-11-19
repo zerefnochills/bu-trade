@@ -38,26 +38,27 @@ export function isMockMode(): boolean {
   return false;
 }
 
-// Singleton instance
-let databaseServiceInstance: IDatabaseService | null = null;
+// Singleton instance — stored on globalThis so it survives Next.js hot-reload
+// module re-evaluations in development mode (preserves in-memory Mock DB state).
+const _g = globalThis as typeof globalThis & { __bu_trade_db?: IDatabaseService };
 
 /**
  * Retrieves the active database service instance (Singleton).
  */
 export function getDatabaseService(): IDatabaseService {
-  if (!databaseServiceInstance) {
+  if (!_g.__bu_trade_db) {
     if (isMockMode()) {
-      databaseServiceInstance = new MockDatabaseService();
+      _g.__bu_trade_db = new MockDatabaseService();
     } else {
-      databaseServiceInstance = new SupabaseDatabaseService();
+      _g.__bu_trade_db = new SupabaseDatabaseService();
     }
   }
-  return databaseServiceInstance;
+  return _g.__bu_trade_db;
 }
 
 /**
  * Resets the active database service instance (for testing and isolation).
  */
 export function resetDatabaseServiceInstance(): void {
-  databaseServiceInstance = null;
+  delete _g.__bu_trade_db;
 }

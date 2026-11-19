@@ -5,17 +5,29 @@
 // ============================================================================
 
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Tag,
+  BookOpen,
+  Laptop,
+  Bike,
+  BedDouble,
+  Armchair,
+  Shirt,
+  FlaskConical,
+  Package,
+} from 'lucide-react';
 
-const CATEGORY_EMOJI_MAP: Record<string, string> = {
-  'Books & notes': '📚',
-  'Electronics': '💻',
-  'Cycles & transport': '🚲',
-  'Hostel essentials': '🛏️',
-  'Furniture': '🪑',
-  'Clothing': '👕',
-  'Stationery & lab gear': '🧪',
-  'Other': '📦',
+const CATEGORY_ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+  'Books & notes': BookOpen,
+  'Electronics': Laptop,
+  'Cycles & transport': Bike,
+  'Hostel essentials': BedDouble,
+  'Furniture': Armchair,
+  'Clothing': Shirt,
+  'Stationery & lab gear': FlaskConical,
+  'Other': Package,
 };
 
 interface ImageGalleryProps {
@@ -33,7 +45,7 @@ export default function ImageGallery({ images = [], title, category }: ImageGall
 
   const hasImages = validImages.length > 0;
   const currentImage = hasImages ? validImages[selectedIndex] : null;
-  const categoryEmoji = CATEGORY_EMOJI_MAP[category] || '🏷️';
+  const CategoryIcon = CATEGORY_ICON_MAP[category] || Tag;
 
   const handlePrev = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -57,8 +69,10 @@ export default function ImageGallery({ images = [], title, category }: ImageGall
           />
         ) : (
           <div className="flex flex-col items-center justify-center p-6 text-center">
-            <span className="text-6xl sm:text-7xl mb-2 select-none">{categoryEmoji}</span>
-            <span className="text-[13px] font-semibold text-[#062a6e] bg-white/80 px-3 py-1 rounded-full border border-[#e1e6f0]">
+            <div className="w-16 h-16 rounded-2xl bg-white/80 border border-[#e1e6f0] flex items-center justify-center text-[#062a6e] mb-3 shadow-xs">
+              <CategoryIcon className="w-8 h-8 text-[#062a6e]" />
+            </div>
+            <span className="text-[13px] font-semibold text-[#062a6e] bg-white/80 px-3.5 py-1 rounded-full border border-[#e1e6f0]">
               {category}
             </span>
           </div>

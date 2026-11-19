@@ -6,17 +6,28 @@
 
 import React from 'react';
 import Link from 'next/link';
+import {
+  Tag,
+  BookOpen,
+  Laptop,
+  Bike,
+  BedDouble,
+  Armchair,
+  Shirt,
+  FlaskConical,
+  Package,
+} from 'lucide-react';
 import { Listing } from '@/lib/db/types';
 
-const CATEGORY_EMOJI_MAP: Record<string, string> = {
-  'Books & notes': '📚',
-  'Electronics': '💻',
-  'Cycles & transport': '🚲',
-  'Hostel essentials': '🛏️',
-  'Furniture': '🪑',
-  'Clothing': '👕',
-  'Stationery & lab gear': '🧪',
-  'Other': '📦',
+const CATEGORY_ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+  'Books & notes': BookOpen,
+  'Electronics': Laptop,
+  'Cycles & transport': Bike,
+  'Hostel essentials': BedDouble,
+  'Furniture': Armchair,
+  'Clothing': Shirt,
+  'Stationery & lab gear': FlaskConical,
+  'Other': Package,
 };
 
 interface ListingCardProps {
@@ -24,7 +35,7 @@ interface ListingCardProps {
 }
 
 export default function ListingCard({ listing }: ListingCardProps) {
-  const emoji = CATEGORY_EMOJI_MAP[listing.category] || '🏷️';
+  const CategoryIcon = CATEGORY_ICON_MAP[listing.category] || Tag;
   const hasImage = Array.isArray(listing.images) && listing.images.length > 0 && !!listing.images[0];
   const isSold = listing.status === 'sold';
   const isDelisted = listing.status === 'delisted';
@@ -48,16 +59,17 @@ export default function ListingCard({ listing }: ListingCardProps) {
           />
         ) : (
           <div className="flex flex-col items-center justify-center text-center p-4">
-            <span className="text-5xl select-none mb-1 group-hover:scale-110 transition-transform duration-200">
-              {emoji}
-            </span>
+            <div className="w-12 h-12 rounded-xl bg-white/80 border border-[#e1e6f0] flex items-center justify-center text-[#062a6e] mb-1.5 shadow-xs group-hover:scale-105 transition-transform duration-200">
+              <CategoryIcon className="w-6 h-6 text-[#062a6e]" />
+            </div>
             <span className="text-[12px] font-medium text-[#5a6580]">{listing.category}</span>
           </div>
         )}
 
         {/* Category Badge */}
-        <span className="absolute top-2.5 right-2.5 bg-white/90 backdrop-blur-sm px-2.5 py-0.5 rounded-full text-[11px] font-semibold text-[#062a6e] border border-[#e1e6f0] shadow-sm">
-          {emoji} {listing.category}
+        <span className="absolute top-2.5 right-2.5 bg-white/95 backdrop-blur-sm px-2.5 py-1 rounded-full text-[11px] font-semibold text-[#062a6e] border border-[#e1e6f0] shadow-sm flex items-center gap-1.5">
+          <CategoryIcon className="w-3 h-3 text-[#062a6e] shrink-0" />
+          <span>{listing.category}</span>
         </span>
 
         {/* Status Overlays */}

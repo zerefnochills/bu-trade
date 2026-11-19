@@ -25,6 +25,7 @@ import {
   RefreshCw,
   AlertTriangle,
   Loader2,
+  Tag,
 } from 'lucide-react';
 
 interface ProfileDashboardProps {
@@ -258,7 +259,7 @@ export default function ProfileDashboard({
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <span>🏷️</span>
+                      <Tag className="w-6 h-6 text-[#062a6e]/50" />
                     )}
                   </div>
 

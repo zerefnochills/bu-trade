@@ -21,7 +21,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { isBennettEmail } from '@/lib/auth/validation';
-import { requestOtpAction, verifyOtpAction } from '@/app/actions/auth';
+import { requestOtpAction, verifyOtpAction, demoLoginAction } from '@/app/actions/auth';
 
 function LoginForm() {
   const router = useRouter();
@@ -106,6 +106,18 @@ function LoginForm() {
         setInfoMessage('A new verification code has been sent. (Mock: 123456)');
       } else {
         setError(result.error || 'Failed to resend verification code.');
+      }
+    });
+  };
+
+  const handleDemoLogin = () => {
+    setError(null);
+    startTransition(async () => {
+      const result = await demoLoginAction(redirectTo);
+      if (result.success) {
+        window.location.href = result.redirectTo || '/';
+      } else {
+        setError(result.error || 'Failed to sign in with demo student account.');
       }
     });
   };
@@ -213,6 +225,25 @@ function LoginForm() {
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
+              </button>
+
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-[#e1e6f0]" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-white px-2 text-[#5a6580]">Instant Campus Access</span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                disabled={isPending}
+                onClick={handleDemoLogin}
+                className="w-full bg-[#f3f5fa] hover:bg-[#e1e6f0] text-[#062a6e] font-semibold py-2.5 px-4 rounded-full border border-[#e1e6f0] transition-all flex items-center justify-center gap-2 text-xs sm:text-sm disabled:opacity-60 active:scale-[0.99]"
+              >
+                <ShieldCheck className="w-4 h-4 text-[#062a6e]" />
+                <span>1-Click Sign In as Bennett Student</span>
               </button>
             </form>
           )}

@@ -110,9 +110,9 @@ export default function SellListingForm({ user, activeCount }: SellListingFormPr
 
       // Success: redirect to newly created item or profile
       if (res.listing?.id) {
-        router.push(`/item/${res.listing.id}`);
+        window.location.href = `/item/${res.listing.id}`;
       } else {
-        router.push('/profile');
+        window.location.href = '/profile';
       }
     } catch (err: any) {
       setError(err?.message || 'An unexpected error occurred while creating listing.');

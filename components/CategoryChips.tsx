@@ -5,17 +5,28 @@
 // ============================================================================
 
 import React from 'react';
+import {
+  Tag,
+  BookOpen,
+  Laptop,
+  Bike,
+  BedDouble,
+  Armchair,
+  Shirt,
+  FlaskConical,
+  Package,
+} from 'lucide-react';
 
 export const CATEGORY_ITEMS = [
-  { label: 'All', emoji: '🏷️' },
-  { label: 'Books & notes', emoji: '📚' },
-  { label: 'Electronics', emoji: '💻' },
-  { label: 'Cycles & transport', emoji: '🚲' },
-  { label: 'Hostel essentials', emoji: '🛏️' },
-  { label: 'Furniture', emoji: '🪑' },
-  { label: 'Clothing', emoji: '👕' },
-  { label: 'Stationery & lab gear', emoji: '🧪' },
-  { label: 'Other', emoji: '📦' },
+  { label: 'All', Icon: Tag },
+  { label: 'Books & notes', Icon: BookOpen },
+  { label: 'Electronics', Icon: Laptop },
+  { label: 'Cycles & transport', Icon: Bike },
+  { label: 'Hostel essentials', Icon: BedDouble },
+  { label: 'Furniture', Icon: Armchair },
+  { label: 'Clothing', Icon: Shirt },
+  { label: 'Stationery & lab gear', Icon: FlaskConical },
+  { label: 'Other', Icon: Package },
 ] as const;
 
 export type CategoryLabel = (typeof CATEGORY_ITEMS)[number]['label'];
@@ -39,6 +50,7 @@ export default function CategoryChips({
         const isSelected =
           selectedCategory === item.label ||
           (item.label === 'All' && (!selectedCategory || selectedCategory === 'All'));
+        const IconComp = item.Icon;
 
         return (
           <button
@@ -52,7 +64,7 @@ export default function CategoryChips({
                 : 'bg-white text-[#14203b] border-[#e1e6f0] hover:bg-[#f3f5fa] hover:border-[#062a6e]/30'
             }`}
           >
-            <span>{item.emoji}</span>
+            <IconComp className="w-3.5 h-3.5 shrink-0" />
             <span>{item.label}</span>
           </button>
         );

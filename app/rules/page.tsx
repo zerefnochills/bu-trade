@@ -206,42 +206,60 @@ export default function RulesPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
             <div className="p-3.5 rounded-xl border border-[#ffccd3] bg-[#fff5f6] text-xs">
-              <div className="font-bold text-[#c8102e] mb-1">🚫 Alcohol, Tobacco & Vapes</div>
+              <div className="font-bold text-[#c8102e] mb-1 flex items-center gap-1.5">
+                <Ban className="w-3.5 h-3.5 shrink-0" />
+                <span>Alcohol, Tobacco & Vapes</span>
+              </div>
               <p className="text-[#5a6580]">
                 E-cigarettes, vapes, pods, cigarettes, tobacco products, and all alcoholic beverages.
               </p>
             </div>
 
             <div className="p-3.5 rounded-xl border border-[#ffccd3] bg-[#fff5f6] text-xs">
-              <div className="font-bold text-[#c8102e] mb-1">🚫 Drugs & Controlled Substances</div>
+              <div className="font-bold text-[#c8102e] mb-1 flex items-center gap-1.5">
+                <Ban className="w-3.5 h-3.5 shrink-0" />
+                <span>Drugs & Controlled Substances</span>
+              </div>
               <p className="text-[#5a6580]">
                 Illicit substances, narcotics, and unauthorized prescription medicines. Immediate police reporting.
               </p>
             </div>
 
             <div className="p-3.5 rounded-xl border border-[#ffccd3] bg-[#fff5f6] text-xs">
-              <div className="font-bold text-[#c8102e] mb-1">🚫 Weapons & Hazardous Items</div>
+              <div className="font-bold text-[#c8102e] mb-1 flex items-center gap-1.5">
+                <Ban className="w-3.5 h-3.5 shrink-0" />
+                <span>Weapons & Hazardous Items</span>
+              </div>
               <p className="text-[#5a6580]">
                 Knives, fireworks, explosive crackers, replica firearms, laser pointers, and dangerous chemicals.
               </p>
             </div>
 
             <div className="p-3.5 rounded-xl border border-[#ffccd3] bg-[#fff5f6] text-xs">
-              <div className="font-bold text-[#c8102e] mb-1">🚫 Exam Materials & Cheating</div>
+              <div className="font-bold text-[#c8102e] mb-1 flex items-center gap-1.5">
+                <Ban className="w-3.5 h-3.5 shrink-0" />
+                <span>Exam Materials & Cheating</span>
+              </div>
               <p className="text-[#5a6580]">
                 Leaked question papers, midterm/endterm solutions, assignment proxies, and commercial cheating aids.
               </p>
             </div>
 
             <div className="p-3.5 rounded-xl border border-[#ffccd3] bg-[#fff5f6] text-xs">
-              <div className="font-bold text-[#c8102e] mb-1">🚫 University & Stolen Property</div>
+              <div className="font-bold text-[#c8102e] mb-1 flex items-center gap-1.5">
+                <Ban className="w-3.5 h-3.5 shrink-0" />
+                <span>University & Stolen Property</span>
+              </div>
               <p className="text-[#5a6580]">
                 Hostel beds, study chairs, lab equipment, library books, and items without rightful ownership.
               </p>
             </div>
 
             <div className="p-3.5 rounded-xl border border-[#ffccd3] bg-[#fff5f6] text-xs">
-              <div className="font-bold text-[#c8102e] mb-1">🚫 Counterfeit & Pirated Media</div>
+              <div className="font-bold text-[#c8102e] mb-1 flex items-center gap-1.5">
+                <Ban className="w-3.5 h-3.5 shrink-0" />
+                <span>Counterfeit & Pirated Media</span>
+              </div>
               <p className="text-[#5a6580]">
                 Knockoff merchandise, pirated software licenses, unauthorized textbook PDFs, and fake tech.
               </p>

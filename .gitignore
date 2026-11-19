@@ -36,3 +36,6 @@ next-env.d.ts
 
 # swc
 /.swc
+
+# local mock db state
+.mock_db_state.json

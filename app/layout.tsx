@@ -1,11 +1,26 @@
 import type { Metadata } from 'next';
-import { Poppins } from 'next/font/google';
+import { Inter, Plus_Jakarta_Sans, Poppins } from 'next/font/google';
 import './globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { getSession } from '@/lib/auth/session';
 import { getDatabaseService } from '@/lib/db';
 
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-inter',
+  display: 'swap',
+});
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  weight: ['500', '600', '700', '800'],
+  variable: '--font-jakarta',
+  display: 'swap',
+});
+
+// Kept as a CSS variable for Tailwind compatibility
 const poppins = Poppins({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
@@ -44,7 +59,7 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang="en" className={poppins.variable}>
+    <html lang="en" className={`${inter.variable} ${plusJakartaSans.variable} ${poppins.variable}`}>
       <body className="font-sans bg-white text-[#14203b] min-h-screen flex flex-col antialiased">
         <Navbar user={user} />
         <main className="flex-1 flex flex-col">{children}</main>

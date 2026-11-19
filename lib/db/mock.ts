@@ -22,14 +22,14 @@ import {
 } from './types';
 
 const STORAGE_KEYS = {
-  PROFILES: 'bu_trade_mock_profiles',
-  LISTINGS: 'bu_trade_mock_listings',
-  ENQUIRIES: 'bu_trade_mock_enquiries',
-  REPORTS: 'bu_trade_mock_reports',
-  FEEDBACK: 'bu_trade_mock_feedback',
-  FEEDBACK_POSTS: 'bu_trade_mock_feedback_posts',
-  FEEDBACK_VOTES: 'bu_trade_mock_feedback_votes',
-  TRADE_BORROW: 'bu_trade_mock_trade_borrow',
+  PROFILES: 'bu_trade_v2_profiles',
+  LISTINGS: 'bu_trade_v2_listings',
+  ENQUIRIES: 'bu_trade_v2_enquiries',
+  REPORTS: 'bu_trade_v2_reports',
+  FEEDBACK: 'bu_trade_v2_feedback',
+  FEEDBACK_POSTS: 'bu_trade_v2_feedback_posts',
+  FEEDBACK_VOTES: 'bu_trade_v2_feedback_votes',
+  TRADE_BORROW: 'bu_trade_v2_trade_borrow',
 };
 
 // Realistic seed profiles
@@ -472,8 +472,57 @@ export class MockDatabaseService implements IDatabaseService {
     return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
   }
 
+  private getServerStoragePath(): string | null {
+    if (this.isClient()) return null;
+    try {
+      const path = require('path');
+      return path.join(process.cwd(), '.mock_db_state.json');
+    } catch {
+      return null;
+    }
+  }
+
+  private readServerStorage(): Record<string, unknown> | null {
+    const filePath = this.getServerStoragePath();
+    if (!filePath) return null;
+    try {
+      const fs = require('fs');
+      if (fs.existsSync(filePath)) {
+        const raw = fs.readFileSync(filePath, 'utf-8');
+        return JSON.parse(raw);
+      }
+    } catch {
+      // Ignore read errors
+    }
+    return null;
+  }
+
+  private writeServerStorage(key: string, data: unknown): void {
+    const filePath = this.getServerStoragePath();
+    if (!filePath) return;
+    try {
+      const fs = require('fs');
+      let state: Record<string, unknown> = {};
+      if (fs.existsSync(filePath)) {
+        try {
+          state = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+        } catch {}
+      }
+      state[key] = data;
+      fs.writeFileSync(filePath, JSON.stringify(state, null, 2), 'utf-8');
+    } catch {
+      // Ignore write errors
+    }
+  }
+
   private loadFromStorage<T>(key: string, fallback: T): T {
-    if (!this.isClient()) return fallback;
+    if (!this.isClient()) {
+      const serverState = this.readServerStorage();
+      if (serverState && serverState[key] !== undefined) {
+        return serverState[key] as T;
+      }
+      return fallback;
+    }
     try {
       const item = window.localStorage.getItem(key);
       return item ? (JSON.parse(item) as T) : fallback;
@@ -483,7 +532,10 @@ export class MockDatabaseService implements IDatabaseService {
   }
 
   private saveToStorage<T>(key: string, data: T): void {
-    if (!this.isClient()) return;
+    if (!this.isClient()) {
+      this.writeServerStorage(key, data);
+      return;
+    }
     try {
       window.localStorage.setItem(key, JSON.stringify(data));
     } catch {
@@ -525,14 +577,16 @@ export class MockDatabaseService implements IDatabaseService {
     if (storedProfiles && storedProfiles.length > 0) {
       this.profiles = storedProfiles;
     } else {
-      this.profiles = [...SEED_PROFILES];
+      // Start with empty profiles — seed profiles available only via forceReset (tests)
+      this.profiles = [];
       this.saveToStorage(STORAGE_KEYS.PROFILES, this.profiles);
     }
 
     if (storedListings && storedListings.length > 0) {
       this.listings = storedListings;
     } else {
-      this.listings = [...SEED_LISTINGS];
+      // Start with an empty feed — no mock/seed listings on first run
+      this.listings = [];
       this.saveToStorage(STORAGE_KEYS.LISTINGS, this.listings);
     }
 
@@ -547,7 +601,8 @@ export class MockDatabaseService implements IDatabaseService {
     if (storedFeedbackPosts && storedFeedbackPosts.length > 0) {
       this.feedbackPosts = storedFeedbackPosts;
     } else {
-      this.feedbackPosts = SEED_FEEDBACK_POSTS.map((p) => ({ ...p, images: [...p.images] }));
+      // Start with empty feedback posts
+      this.feedbackPosts = [];
       this.saveToStorage(STORAGE_KEYS.FEEDBACK_POSTS, this.feedbackPosts);
     }
 
@@ -560,10 +615,8 @@ export class MockDatabaseService implements IDatabaseService {
     if (storedTradeBorrow && storedTradeBorrow.length > 0) {
       this.tradeBorrowRequests = storedTradeBorrow;
     } else {
-      this.tradeBorrowRequests = SEED_TRADE_BORROW_REQUESTS.map((r) => ({
-        ...r,
-        images: [...r.images],
-      }));
+      // Start with empty trade/borrow requests
+      this.tradeBorrowRequests = [];
       this.saveToStorage(STORAGE_KEYS.TRADE_BORROW, this.tradeBorrowRequests);
     }
 

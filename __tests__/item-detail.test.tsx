@@ -55,11 +55,11 @@ describe('Product Detail Page & Image Gallery', () => {
     expect(imgs.length).toBeGreaterThanOrEqual(2);
   });
 
-  it('renders category emoji fallback when no images provided', () => {
-    render(<ImageGallery images={[]} title="Sample Item" category="Cycles & transport" />);
+  it('renders category icon fallback when no images provided', () => {
+    const { container } = render(<ImageGallery images={[]} title="Sample Item" category="Cycles & transport" />);
 
-    expect(screen.getByText('🚲')).toBeInTheDocument();
     expect(screen.getByText('Cycles & transport')).toBeInTheDocument();
+    expect(container.querySelector('svg.lucide-bike')).toBeInTheDocument();
   });
 
   it('renders unauthenticated state where seller contact is completely hidden', async () => {

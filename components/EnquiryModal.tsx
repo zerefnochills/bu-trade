@@ -18,6 +18,7 @@ import {
   Mail,
   Send,
   ExternalLink,
+  Info,
 } from 'lucide-react';
 
 export interface EnquiryModalProps {
@@ -314,8 +315,9 @@ export default function EnquiryModal({
                 </div>
 
                 {/* Safety Note */}
-                <p className="text-[11.5px] text-[#5a6580] bg-[#f3f5fa] p-2.5 rounded-xl border border-[#e1e6f0]">
-                  💡 <strong>Campus Tip:</strong> Always meet in public campus areas (CBC Cafeteria, Student Center, or Central Library) during daylight hours.
+                <p className="text-[11.5px] text-[#5a6580] bg-[#f3f5fa] p-2.5 rounded-xl border border-[#e1e6f0] flex items-center gap-1.5">
+                  <Info className="w-4 h-4 text-[#062a6e] shrink-0" />
+                  <span><strong>Campus Tip:</strong> Always meet in public campus areas (CBC Cafeteria, Student Center, or Central Library) during daylight hours.</span>
                 </p>
 
                 {/* Modal Actions */}

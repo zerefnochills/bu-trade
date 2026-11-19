@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import { CATEGORIES, ContactMethod, Listing, ListingCategory, ListingStatus } from '@/lib/db/types';
 import ImageUploader from '@/components/ImageUploader';
 import { updateListingAction } from '@/app/actions/listings';
-import { Loader2, Save, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Loader2, Save, AlertCircle, AlertTriangle, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 interface EditListingFormProps {
@@ -150,8 +150,9 @@ export default function EditListingForm({ listing, activeCount }: EditListingFor
           ))}
         </div>
         {isRelistingBlocked && (
-          <p className="text-[12px] text-[#c8102e] font-medium mt-2">
-            ⚠️ You already have 10 active listings. Marking this listing active is disabled until an existing item is sold or delisted.
+          <p className="text-[12px] text-[#c8102e] font-medium mt-2 flex items-center gap-1.5">
+            <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+            <span>You already have 10 active listings. Marking this listing active is disabled until an existing item is sold or delisted.</span>
           </p>
         )}
       </div>
