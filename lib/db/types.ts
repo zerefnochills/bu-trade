@@ -117,6 +117,37 @@ export interface FeedbackVote {
   createdAt: string;
 }
 
+export type BorrowTradeType = 'borrow' | 'trade';
+export type BorrowTradeStatus = 'active' | 'fulfilled' | 'closed';
+
+export interface TradeBorrowRequest {
+  id: string;
+  userId: string;
+  title: string;
+  description: string;
+  requestType: BorrowTradeType;
+  duration: string;
+  category: ListingCategory;
+  contactMethod: ContactMethod;
+  contactValue: string;
+  status: BorrowTradeStatus;
+  images: string[];
+  createdAt: string;
+  updatedAt: string;
+  // Joins
+  requesterName?: string;
+  requesterCourse?: string;
+  requesterYear?: number;
+}
+
+export interface GetTradeBorrowOptions {
+  type?: BorrowTradeType | 'all';
+  category?: ListingCategory | 'All';
+  search?: string;
+  status?: BorrowTradeStatus;
+  userId?: string;
+}
+
 export interface GetListingsOptions {
   category?: ListingCategory | 'All';
   search?: string;
@@ -191,4 +222,20 @@ export interface IDatabaseService {
     upvotesCount: number;
     downvotesCount: number;
   }>;
+
+  // Trade / Borrow Requests (R4)
+  getTradeBorrowRequests?(options?: GetTradeBorrowOptions): Promise<TradeBorrowRequest[]>;
+  getTradeBorrowRequestById?(id: string): Promise<TradeBorrowRequest | null>;
+  createTradeBorrowRequest?(
+    request: Omit<
+      TradeBorrowRequest,
+      'id' | 'createdAt' | 'updatedAt' | 'requesterName' | 'requesterCourse' | 'requesterYear'
+    >
+  ): Promise<TradeBorrowRequest>;
+  updateTradeBorrowRequestStatus?(
+    id: string,
+    status: BorrowTradeStatus,
+    userId: string
+  ): Promise<TradeBorrowRequest>;
+  deleteTradeBorrowRequest?(id: string, userId: string): Promise<boolean>;
 }

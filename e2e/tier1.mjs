@@ -798,3 +798,479 @@ registerTest('Tier 1', 'T1.15.5', 'Service operations return standardized Promis
   const listings = await listingsPromise;
   assert.ok(Array.isArray(listings));
 });
+
+/* -------------------------------------------------------------------------- */
+/*       EC16: Styling & Tailwind CSS Token Delivery (T1.16.1 - T1.16.5)      */
+/* -------------------------------------------------------------------------- */
+
+registerTest('Tier 1', 'T1.16.1', 'app/globals.css contains core Tailwind directives and Bennett HSL custom properties', async () => {
+  const rootDir = path.resolve(__dirname, '..');
+  const cssPath = path.join(rootDir, 'app', 'globals.css');
+  assert.ok(fs.existsSync(cssPath), 'globals.css must exist');
+  const css = fs.readFileSync(cssPath, 'utf8');
+
+  assert.match(css, /@tailwind\s+base;/);
+  assert.match(css, /@tailwind\s+components;/);
+  assert.match(css, /@tailwind\s+utilities;/);
+  assert.match(css, /--primary:\s*219\s+90%\s+23%;/); // Bennett Navy
+  assert.match(css, /--accent:\s*350\s+85%\s+42%;/);  // Bennett Red
+  assert.match(css, /--border:\s*220\s+33%\s+91%;/);
+  assert.match(css, /--radius:\s*0\.875rem;/);
+});
+
+registerTest('Tier 1', 'T1.16.2', 'tailwind.config.ts configures brand palette and content scan paths', async () => {
+  const rootDir = path.resolve(__dirname, '..');
+  const configPath = path.join(rootDir, 'tailwind.config.ts');
+  assert.ok(fs.existsSync(configPath), 'tailwind.config.ts must exist');
+  const config = fs.readFileSync(configPath, 'utf8');
+
+  assert.ok(config.includes('./app/**/*.{ts,tsx}'));
+  assert.ok(config.includes('./components/**/*.{ts,tsx}'));
+  assert.match(config, /navy:\s*['"]#062a6e['"]/);
+  assert.match(config, /red:\s*['"]#c8102e['"]/);
+  assert.match(config, /slate:\s*['"]#14203b['"]/);
+  assert.match(config, /soft:\s*['"]#f3f5fa['"]/);
+});
+
+registerTest('Tier 1', 'T1.16.3', 'Campus container utility class .w-bu and 1160px max width token are defined', async () => {
+  const rootDir = path.resolve(__dirname, '..');
+  const cssPath = path.join(rootDir, 'app', 'globals.css');
+  const css = fs.readFileSync(cssPath, 'utf8');
+  assert.match(css, /\.w-bu\s*\{[^}]*max-width:\s*1160px;/s);
+  assert.match(css, /\.w-bu\s*\{[^}]*margin-left:\s*auto;/s);
+  assert.match(css, /\.w-bu\s*\{[^}]*margin-right:\s*auto;/s);
+});
+
+registerTest('Tier 1', 'T1.16.4', 'Typography configuration configures Poppins font variable', async () => {
+  const rootDir = path.resolve(__dirname, '..');
+  const tailwindPath = path.join(rootDir, 'tailwind.config.ts');
+  const tailwind = fs.readFileSync(tailwindPath, 'utf8');
+  assert.ok(tailwind.includes('var(--font-poppins)'), 'Tailwind must configure var(--font-poppins)');
+
+  const layoutPath = path.join(rootDir, 'app', 'layout.tsx');
+  if (fs.existsSync(layoutPath)) {
+    const layout = fs.readFileSync(layoutPath, 'utf8');
+    assert.match(layout, /Poppins/);
+  }
+});
+
+registerTest('Tier 1', 'T1.16.5', 'PostCSS configuration is standardized to CommonJS with tailwindcss plugin', async () => {
+  const rootDir = path.resolve(__dirname, '..');
+  const postcssPath = path.join(rootDir, 'postcss.config.js');
+  assert.ok(fs.existsSync(postcssPath), 'postcss.config.js must exist');
+  const postcss = fs.readFileSync(postcssPath, 'utf8');
+
+  assert.match(postcss, /module\.exports\s*=/);
+  assert.match(postcss, /tailwindcss/);
+  assert.match(postcss, /autoprefixer/);
+});
+
+/* -------------------------------------------------------------------------- */
+/*       EC17: Profile & My Listings Tab Resilience (T1.17.1 - T1.17.5)       */
+/* -------------------------------------------------------------------------- */
+
+registerTest('Tier 1', 'T1.17.1', 'Profile listings query loads across active, sold, and delisted statuses cleanly', async (harness) => {
+  const uid = 'user_seed_aarav';
+  // Aarav has 1 active listing in seed
+  const activeListings = await harness.getListings({ userId: uid, status: 'active' });
+  assert.equal(activeListings.length, 1);
+  assert.equal(activeListings[0].status, 'active');
+
+  // Mark sold
+  await harness.updateListing(activeListings[0].id, { status: 'sold' }, uid);
+  const soldListings = await harness.getListings({ userId: uid, status: 'sold' });
+  assert.equal(soldListings.length, 1);
+  assert.equal(soldListings[0].status, 'sold');
+
+  // Relist as delisted
+  await harness.updateListing(activeListings[0].id, { status: 'delisted' }, uid);
+  const delistedListings = await harness.getListings({ userId: uid, status: 'delisted' });
+  assert.equal(delistedListings.length, 1);
+  assert.equal(delistedListings[0].status, 'delisted');
+});
+
+registerTest('Tier 1', 'T1.17.2', 'Active listing counter accurately calculates current active listings out of 10 cap', async (harness) => {
+  const uid = 'user_seed_aarav';
+  assert.equal(await harness.countActiveListings(uid), 1);
+
+  // Create 2 more active listings
+  await harness.createListing({ userId: uid, title: 'Item 2', price: 100, category: 'Other' });
+  await harness.createListing({ userId: uid, title: 'Item 3', price: 200, category: 'Other' });
+  assert.equal(await harness.countActiveListings(uid), 3);
+
+  // Delisting one reduces count
+  const allUser = await harness.getListings({ userId: uid, status: 'active' });
+  await harness.updateListing(allUser[0].id, { status: 'delisted' }, uid);
+  assert.equal(await harness.countActiveListings(uid), 2);
+});
+
+registerTest('Tier 1', 'T1.17.3', 'Defensive resilience: User with 0 listings returns empty array without throwing error', async (harness) => {
+  const emptyUserId = 'user_with_no_listings';
+  const listings = await harness.getListings({ userId: emptyUserId });
+  assert.ok(Array.isArray(listings));
+  assert.equal(listings.length, 0);
+  assert.equal(await harness.countActiveListings(emptyUserId), 0);
+});
+
+registerTest('Tier 1', 'T1.17.4', 'Defensive listing data formatting safely handles zero price and empty image arrays', async (harness) => {
+  const freeItem = await harness.createListing({
+    userId: 'user_seed_mehak',
+    title: 'Free Workshop Notes',
+    price: 0,
+    category: 'Books & notes',
+    images: []
+  });
+  assert.equal(freeItem.price, 0);
+  assert.deepEqual(freeItem.images, []);
+  assert.equal(freeItem.hasUnlockedContact, true); // Owner view
+});
+
+registerTest('Tier 1', 'T1.17.5', 'Profile error boundary app/profile/error.tsx exists and conforms to client component contract', async () => {
+  const rootDir = path.resolve(__dirname, '..');
+  const errorPath = path.join(rootDir, 'app', 'profile', 'error.tsx');
+  assert.ok(fs.existsSync(errorPath), 'app/profile/error.tsx must exist');
+  const errorContent = fs.readFileSync(errorPath, 'utf8');
+
+  assert.match(errorContent, /[']use client[']/);
+  assert.match(errorContent, /export\s+default\s+function\s+ProfileError/);
+  assert.match(errorContent, /reset\s*:\s*\(\)\s*=>\s*void/);
+});
+
+/* -------------------------------------------------------------------------- */
+/*     EC18: Feedback Posts & Review Image Ingestion (T1.18.1 - T1.18.5)      */
+/* -------------------------------------------------------------------------- */
+
+registerTest('Tier 1', 'T1.18.1', 'Authenticated student creates valid feedback post with title, review content, and 1-5 rating', async (harness) => {
+  const post = await harness.createFeedbackPost({
+    userId: 'user_seed_aarav',
+    itemTitle: 'Hero Sprint cycle review',
+    content: 'Smooth ride across campus, excellent seller.',
+    rating: 5
+  });
+
+  assert.ok(post.id);
+  assert.equal(post.itemTitle, 'Hero Sprint cycle review');
+  assert.equal(post.content, 'Smooth ride across campus, excellent seller.');
+  assert.equal(post.rating, 5);
+  assert.equal(post.score, 0);
+  assert.equal(post.upvotesCount, 0);
+  assert.equal(post.downvotesCount, 0);
+  assert.equal(post.authorName, 'Aarav S.');
+});
+
+registerTest('Tier 1', 'T1.18.2', 'Feedback post creation supports attached WebP image array truncated to max 3', async (harness) => {
+  const post = await harness.createFeedbackPost({
+    userId: 'user_seed_mehak',
+    itemTitle: 'Casio Calculator review with photos',
+    content: 'Attached pictures of screen and back panel.',
+    rating: 4,
+    images: ['data:image/webp;base64,img1', 'data:image/webp;base64,img2', 'data:image/webp;base64,img3', 'data:image/webp;base64,img4']
+  });
+
+  assert.equal(post.images.length, 3);
+  assert.deepEqual(post.images, ['data:image/webp;base64,img1', 'data:image/webp;base64,img2', 'data:image/webp;base64,img3']);
+});
+
+registerTest('Tier 1', 'T1.18.3', 'Feedback post links to optional listing ID for marketplace transaction traceability', async (harness) => {
+  const post = await harness.createFeedbackPost({
+    userId: 'user_seed_ishita',
+    itemTitle: 'Study Lamp Review',
+    content: 'Great lamp for late night studying.',
+    rating: 5,
+    listingId: '3'
+  });
+
+  assert.equal(post.listingId, '3');
+});
+
+registerTest('Tier 1', 'T1.18.4', 'getFeedbackPosts enriches items with author name, course, and academic year from profiles', async (harness) => {
+  const posts = await harness.getFeedbackPosts();
+  assert.ok(posts.length >= 5);
+  for (const post of posts) {
+    assert.ok(post.authorName, 'authorName must be populated');
+    assert.ok(post.authorCourse, 'authorCourse must be populated');
+    assert.ok(Number.isInteger(post.authorYear), 'authorYear must be an integer');
+  }
+});
+
+registerTest('Tier 1', 'T1.18.5', 'getFeedbackPosts sorts correctly by score (top) and creation timestamp (newest)', async (harness) => {
+  const topPosts = await harness.getFeedbackPosts({ sort: 'top' });
+  for (let i = 0; i < topPosts.length - 1; i++) {
+    assert.ok(topPosts[i].score >= topPosts[i + 1].score, 'Top sort must order score descending');
+  }
+
+  const newestPosts = await harness.getFeedbackPosts({ sort: 'newest' });
+  for (let i = 0; i < newestPosts.length - 1; i++) {
+    const tCurrent = new Date(newestPosts[i].createdAt).getTime();
+    const tNext = new Date(newestPosts[i + 1].createdAt).getTime();
+    assert.ok(tCurrent >= tNext, 'Newest sort must order createdAt descending');
+  }
+});
+
+/* -------------------------------------------------------------------------- */
+/*     EC19: Reddit-Style Upvote / Downvote Engine (T1.19.1 - T1.19.5)        */
+/* -------------------------------------------------------------------------- */
+
+registerTest('Tier 1', 'T1.19.1', 'Unvoted post upvote (+1) increments score by +1 and sets userVote to 1', async (harness) => {
+  const post = await harness.createFeedbackPost({
+    userId: 'user_seed_aarav',
+    itemTitle: 'Vote Test Post 1',
+    content: 'Testing initial upvote.'
+  });
+
+  const res = await harness.voteFeedbackPost(post.id, 'user_seed_mehak', 1);
+  assert.equal(res.score, 1);
+  assert.equal(res.upvotesCount, 1);
+  assert.equal(res.downvotesCount, 0);
+  assert.equal(res.userVote, 1);
+});
+
+registerTest('Tier 1', 'T1.19.2', 'Unvoted post downvote (-1) decrements score by -1 and sets userVote to -1', async (harness) => {
+  const post = await harness.createFeedbackPost({
+    userId: 'user_seed_aarav',
+    itemTitle: 'Vote Test Post 2',
+    content: 'Testing initial downvote.'
+  });
+
+  const res = await harness.voteFeedbackPost(post.id, 'user_seed_rohan', -1);
+  assert.equal(res.score, -1);
+  assert.equal(res.upvotesCount, 0);
+  assert.equal(res.downvotesCount, 1);
+  assert.equal(res.userVote, -1);
+});
+
+registerTest('Tier 1', 'T1.19.3', 'Clicking the same vote direction toggles off vote and restores neutral score (0)', async (harness) => {
+  const post = await harness.createFeedbackPost({
+    userId: 'user_seed_aarav',
+    itemTitle: 'Toggle Vote Post',
+    content: 'Testing toggle off.'
+  });
+
+  // Upvote
+  await harness.voteFeedbackPost(post.id, 'user_seed_mehak', 1);
+  // Upvote again to toggle off
+  const res = await harness.voteFeedbackPost(post.id, 'user_seed_mehak', 1);
+  assert.equal(res.score, 0);
+  assert.equal(res.upvotesCount, 0);
+  assert.equal(res.downvotesCount, 0);
+  assert.equal(res.userVote, 0);
+});
+
+registerTest('Tier 1', 'T1.19.4', 'Vote flipping from downvote to upvote produces +2 score swing', async (harness) => {
+  const post = await harness.createFeedbackPost({
+    userId: 'user_seed_aarav',
+    itemTitle: 'Flip Vote Post',
+    content: 'Testing vote flip from -1 to +1.'
+  });
+
+  // Initial downvote (-1)
+  await harness.voteFeedbackPost(post.id, 'user_seed_kabir', -1);
+  // Flip to upvote (+1)
+  const res = await harness.voteFeedbackPost(post.id, 'user_seed_kabir', 1);
+  assert.equal(res.score, 1, 'Score must swing from -1 to +1 (+2 swing)');
+  assert.equal(res.upvotesCount, 1);
+  assert.equal(res.downvotesCount, 0);
+  assert.equal(res.userVote, 1);
+});
+
+registerTest('Tier 1', 'T1.19.5', 'Multi-user voting preserves mathematical invariant: score === upvotesCount - downvotesCount', async (harness) => {
+  const post = await harness.createFeedbackPost({
+    userId: 'user_seed_aarav',
+    itemTitle: 'Multi-User Vote Post',
+    content: 'Testing score invariant with 4 students.'
+  });
+
+  await harness.voteFeedbackPost(post.id, 'user_seed_mehak', 1);  // +1
+  await harness.voteFeedbackPost(post.id, 'user_seed_rohan', 1);  // +1
+  await harness.voteFeedbackPost(post.id, 'user_seed_ishita', 1); // +1
+  const res = await harness.voteFeedbackPost(post.id, 'user_seed_kabir', -1); // -1
+
+  assert.equal(res.upvotesCount, 3);
+  assert.equal(res.downvotesCount, 1);
+  assert.equal(res.score, 2);
+  assert.equal(res.score, res.upvotesCount - res.downvotesCount);
+
+  // Check viewer isolation
+  const mehakView = await harness.getFeedbackPostById(post.id, 'user_seed_mehak');
+  assert.equal(mehakView.userVote, 1);
+
+  const kabirView = await harness.getFeedbackPostById(post.id, 'user_seed_kabir');
+  assert.equal(kabirView.userVote, -1);
+
+  const ananyaView = await harness.getFeedbackPostById(post.id, 'user_seed_ananya');
+  assert.equal(ananyaView.userVote, 0);
+});
+
+/* -------------------------------------------------------------------------- */
+/*  EC20: Trade/Borrow Requests & Duration Validation (T1.20.1 - T1.20.5)     */
+/* -------------------------------------------------------------------------- */
+
+registerTest('Tier 1', 'T1.20.1', 'Create valid borrow request with title, description, duration (3 days), category, and contact', async (harness) => {
+  const req = await harness.createTradeBorrowRequest({
+    userId: 'user_seed_aarav',
+    title: 'Casio fx-991EX Calculator',
+    description: 'Need for Calculus end-term examination.',
+    requestType: 'borrow',
+    duration: '3 days',
+    category: 'Electronics',
+    contactMethod: 'WhatsApp',
+    contactValue: '9876543221'
+  });
+
+  assert.ok(req.id);
+  assert.equal(req.title, 'Casio fx-991EX Calculator');
+  assert.equal(req.requestType, 'borrow');
+  assert.equal(req.duration, '3 days');
+  assert.equal(req.category, 'Electronics');
+  assert.equal(req.status, 'active');
+  assert.equal(req.requesterName, 'Aarav S.');
+});
+
+registerTest('Tier 1', 'T1.20.2', 'Create valid trade request with item title, swap description, duration, category, and contact', async (harness) => {
+  const req = await harness.createTradeBorrowRequest({
+    userId: 'user_seed_mehak',
+    title: 'Data Structures Textbook',
+    description: 'Looking to swap with Computer Networks book.',
+    requestType: 'trade',
+    duration: '1 semester',
+    category: 'Books & notes',
+    contactMethod: 'Phone',
+    contactValue: '9876543242'
+  });
+
+  assert.ok(req.id);
+  assert.equal(req.title, 'Data Structures Textbook');
+  assert.equal(req.requestType, 'trade');
+  assert.equal(req.duration, '1 semester');
+  assert.equal(req.status, 'active');
+});
+
+registerTest('Tier 1', 'T1.20.3', 'Duration field validation preserves duration string and rejects empty duration', async (harness) => {
+  const req = await harness.createTradeBorrowRequest({
+    userId: 'user_seed_rohan',
+    title: 'Study Lamp',
+    description: 'Hostel night study',
+    requestType: 'borrow',
+    duration: '2 weeks',
+    category: 'Hostel essentials',
+    contactMethod: 'WhatsApp',
+    contactValue: '9912345608'
+  });
+  assert.equal(req.duration, '2 weeks');
+
+  await assert.rejects(
+    async () => {
+      await harness.createTradeBorrowRequest({
+        userId: 'user_seed_rohan',
+        title: 'Study Lamp',
+        description: 'Hostel night study',
+        requestType: 'borrow',
+        duration: '',
+        category: 'Hostel essentials'
+      });
+    },
+    /duration is required/i
+  );
+});
+
+registerTest('Tier 1', 'T1.20.4', 'Trade/Borrow request supports optional images array truncated to max 5', async (harness) => {
+  const req = await harness.createTradeBorrowRequest({
+    userId: 'user_seed_kabir',
+    title: 'Drawing Board & T-Square',
+    description: 'Design course requirement',
+    requestType: 'trade',
+    duration: '1 month',
+    category: 'Stationery & lab gear',
+    contactMethod: 'WhatsApp',
+    contactValue: '9712345615',
+    images: ['img1.webp', 'img2.webp', 'img3.webp', 'img4.webp', 'img5.webp', 'img6.webp']
+  });
+
+  assert.equal(req.images.length, 5);
+  assert.deepEqual(req.images, ['img1.webp', 'img2.webp', 'img3.webp', 'img4.webp', 'img5.webp']);
+});
+
+registerTest('Tier 1', 'T1.20.5', 'Request owner transitions request status to fulfilled and closed; non-owner blocked', async (harness) => {
+  const ownerId = 'user_seed_aarav';
+  const intruderId = 'user_seed_kabir';
+
+  const req = await harness.createTradeBorrowRequest({
+    userId: ownerId,
+    title: 'Calculator for borrow',
+    description: 'Calculus exam',
+    requestType: 'borrow',
+    duration: '3 days',
+    category: 'Electronics',
+    contactMethod: 'WhatsApp',
+    contactValue: '9876543221'
+  });
+
+  // Non-owner blocked
+  await assert.rejects(
+    async () => {
+      await harness.updateTradeBorrowRequestStatus(req.id, 'fulfilled', intruderId);
+    },
+    /unauthorized/i
+  );
+
+  // Owner fulfills
+  const fulfilled = await harness.updateTradeBorrowRequestStatus(req.id, 'fulfilled', ownerId);
+  assert.equal(fulfilled.status, 'fulfilled');
+
+  // Owner closes
+  const closed = await harness.updateTradeBorrowRequestStatus(req.id, 'closed', ownerId);
+  assert.equal(closed.status, 'closed');
+});
+
+/* -------------------------------------------------------------------------- */
+/*  EC21: Trade/Borrow Query Filtering & Request Lifecycle (T1.21.1 - T1.21.5)*/
+/* -------------------------------------------------------------------------- */
+
+registerTest('Tier 1', 'T1.21.1', 'Filtering by requestType: borrow returns only borrow requests', async (harness) => {
+  const borrowOnly = await harness.getTradeBorrowRequests({ type: 'borrow' });
+  assert.ok(borrowOnly.length > 0);
+  for (const item of borrowOnly) {
+    assert.equal(item.requestType, 'borrow');
+  }
+});
+
+registerTest('Tier 1', 'T1.21.2', 'Filtering by requestType: trade returns only trade requests', async (harness) => {
+  const tradeOnly = await harness.getTradeBorrowRequests({ type: 'trade' });
+  assert.ok(tradeOnly.length > 0);
+  for (const item of tradeOnly) {
+    assert.equal(item.requestType, 'trade');
+  }
+});
+
+registerTest('Tier 1', 'T1.21.3', 'Query filtering by type all or omitted returns both borrow and trade requests', async (harness) => {
+  const allItems = await harness.getTradeBorrowRequests({ type: 'all' });
+  const types = new Set(allItems.map(r => r.requestType));
+  assert.ok(types.has('borrow'));
+  assert.ok(types.has('trade'));
+});
+
+registerTest('Tier 1', 'T1.21.4', 'Query filtering by category and combined (type + category) filters accurately', async (harness) => {
+  const electronics = await harness.getTradeBorrowRequests({ category: 'Electronics' });
+  assert.ok(electronics.length > 0);
+  for (const item of electronics) {
+    assert.equal(item.category, 'Electronics');
+  }
+
+  const combined = await harness.getTradeBorrowRequests({ type: 'borrow', category: 'Electronics' });
+  assert.ok(combined.length > 0);
+  for (const item of combined) {
+    assert.equal(item.requestType, 'borrow');
+    assert.equal(item.category, 'Electronics');
+  }
+});
+
+registerTest('Tier 1', 'T1.21.5', 'Live search query filters trade/borrow requests across title, description, and duration', async (harness) => {
+  const results = await harness.getTradeBorrowRequests({ search: 'Calculator' });
+  assert.ok(results.length > 0);
+  for (const item of results) {
+    const matched = item.title.toLowerCase().includes('calculator') ||
+                    item.description.toLowerCase().includes('calculator') ||
+                    item.duration.toLowerCase().includes('calculator');
+    assert.ok(matched, 'Search query must match title, description, or duration');
+  }
+});

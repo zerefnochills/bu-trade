@@ -5,16 +5,20 @@
 // ============================================================================
 
 import {
+  BorrowTradeStatus,
+  BorrowTradeType,
   ContactMethod,
   Enquiry,
   Feedback,
   FeedbackPost,
   FeedbackVote,
   GetListingsOptions,
+  GetTradeBorrowOptions,
   IDatabaseService,
   Listing,
   Profile,
   Report,
+  TradeBorrowRequest,
 } from './types';
 
 const STORAGE_KEYS = {
@@ -25,6 +29,7 @@ const STORAGE_KEYS = {
   FEEDBACK: 'bu_trade_mock_feedback',
   FEEDBACK_POSTS: 'bu_trade_mock_feedback_posts',
   FEEDBACK_VOTES: 'bu_trade_mock_feedback_votes',
+  TRADE_BORROW: 'bu_trade_mock_trade_borrow',
 };
 
 // Realistic seed profiles
@@ -354,6 +359,100 @@ export const SEED_FEEDBACK_POSTS: FeedbackPost[] = [
   },
 ];
 
+// Realistic Bennett University student trade & borrow requests
+export const SEED_TRADE_BORROW_REQUESTS: TradeBorrowRequest[] = [
+  {
+    id: 'seed-trade-borrow-1',
+    userId: 'seed-user-1',
+    title: 'Casio fx-991EX Scientific Calculator',
+    description: 'Need for Calculus and Linear Algebra mid-term exams next week. Will handle with care!',
+    requestType: 'borrow',
+    duration: '3 days',
+    category: 'Electronics',
+    contactMethod: 'WhatsApp',
+    contactValue: '+91 98765 43210',
+    status: 'active',
+    images: [],
+    createdAt: new Date(Date.now() - 5 * 86400000).toISOString(),
+    updatedAt: new Date(Date.now() - 5 * 86400000).toISOString(),
+    requesterName: 'Aarav Sharma',
+    requesterCourse: 'B.Tech CSE',
+    requesterYear: 3,
+  },
+  {
+    id: 'seed-trade-borrow-2',
+    userId: 'seed-user-2',
+    title: 'Bennett Lab Coat & Safety Goggles (Size M)',
+    description: 'Urgent borrow for Physics/Chemistry practicals this Thursday afternoon.',
+    requestType: 'borrow',
+    duration: '1 lab session / 3 hours',
+    category: 'Stationery & lab gear',
+    contactMethod: 'Phone',
+    contactValue: '+91 98123 45678',
+    status: 'active',
+    images: [],
+    createdAt: new Date(Date.now() - 4 * 86400000).toISOString(),
+    updatedAt: new Date(Date.now() - 4 * 86400000).toISOString(),
+    requesterName: 'Mehak Kaur',
+    requesterCourse: 'B.Tech ECE',
+    requesterYear: 2,
+  },
+  {
+    id: 'seed-trade-borrow-3',
+    userId: 'seed-user-3',
+    title: 'Data Structures and Algorithms in C++ (Cormen / CLRS)',
+    description: 'Have CLRS 3rd Edition in excellent condition. Looking to swap with Computer Networks or Operating Systems textbook for the semester.',
+    requestType: 'trade',
+    duration: 'Full semester',
+    category: 'Books & notes',
+    contactMethod: 'WhatsApp',
+    contactValue: '+91 99887 76655',
+    status: 'active',
+    images: [],
+    createdAt: new Date(Date.now() - 3 * 86400000).toISOString(),
+    updatedAt: new Date(Date.now() - 3 * 86400000).toISOString(),
+    requesterName: 'Rohan Verma',
+    requesterCourse: 'BBA',
+    requesterYear: 2,
+  },
+  {
+    id: 'seed-trade-borrow-4',
+    userId: 'seed-user-4',
+    title: 'Bicycle for Greater Noida Market Grocery Run',
+    description: 'Need geared cycle for a quick Saturday evening trip to Pari Chowk / Alpha 1 market.',
+    requestType: 'borrow',
+    duration: '1 weekend',
+    category: 'Cycles & transport',
+    contactMethod: 'WhatsApp',
+    contactValue: '+91 97654 32109',
+    status: 'active',
+    images: [],
+    createdAt: new Date(Date.now() - 2 * 86400000).toISOString(),
+    updatedAt: new Date(Date.now() - 2 * 86400000).toISOString(),
+    requesterName: 'Ishita Mishra',
+    requesterCourse: 'B.Tech CSE',
+    requesterYear: 4,
+  },
+  {
+    id: 'seed-trade-borrow-5',
+    userId: 'seed-user-5',
+    title: 'Stag Table Tennis Racket Pair',
+    description: 'Have two TT bats with extra balls. Looking to trade for a badminton racket set or basketball for hostel court games.',
+    requestType: 'trade',
+    duration: '2 weeks',
+    category: 'Hostel essentials',
+    contactMethod: 'WhatsApp',
+    contactValue: '+91 98234 56789',
+    status: 'active',
+    images: [],
+    createdAt: new Date(Date.now() - 1 * 86400000).toISOString(),
+    updatedAt: new Date(Date.now() - 1 * 86400000).toISOString(),
+    requesterName: 'Kabir Tyagi',
+    requesterCourse: 'B.Des',
+    requesterYear: 1,
+  },
+];
+
 export class MockDatabaseService implements IDatabaseService {
   private profiles: Profile[] = [];
   private listings: Listing[] = [];
@@ -362,6 +461,7 @@ export class MockDatabaseService implements IDatabaseService {
   private feedback: Feedback[] = [];
   private feedbackPosts: FeedbackPost[] = [];
   private feedbackVotes: FeedbackVote[] = [];
+  private tradeBorrowRequests: TradeBorrowRequest[] = [];
   private isLoaded = false;
 
   constructor() {
@@ -402,6 +502,10 @@ export class MockDatabaseService implements IDatabaseService {
       this.feedback = [];
       this.feedbackPosts = SEED_FEEDBACK_POSTS.map((p) => ({ ...p, images: [...p.images] }));
       this.feedbackVotes = [];
+      this.tradeBorrowRequests = SEED_TRADE_BORROW_REQUESTS.map((r) => ({
+        ...r,
+        images: [...r.images],
+      }));
 
       this.saveToStorage(STORAGE_KEYS.PROFILES, this.profiles);
       this.saveToStorage(STORAGE_KEYS.LISTINGS, this.listings);
@@ -410,6 +514,7 @@ export class MockDatabaseService implements IDatabaseService {
       this.saveToStorage(STORAGE_KEYS.FEEDBACK, this.feedback);
       this.saveToStorage(STORAGE_KEYS.FEEDBACK_POSTS, this.feedbackPosts);
       this.saveToStorage(STORAGE_KEYS.FEEDBACK_VOTES, this.feedbackVotes);
+      this.saveToStorage(STORAGE_KEYS.TRADE_BORROW, this.tradeBorrowRequests);
       this.isLoaded = true;
       return;
     }
@@ -447,6 +552,21 @@ export class MockDatabaseService implements IDatabaseService {
     }
 
     this.feedbackVotes = this.loadFromStorage<FeedbackVote[]>(STORAGE_KEYS.FEEDBACK_VOTES, []);
+
+    const storedTradeBorrow = this.loadFromStorage<TradeBorrowRequest[] | null>(
+      STORAGE_KEYS.TRADE_BORROW,
+      null
+    );
+    if (storedTradeBorrow && storedTradeBorrow.length > 0) {
+      this.tradeBorrowRequests = storedTradeBorrow;
+    } else {
+      this.tradeBorrowRequests = SEED_TRADE_BORROW_REQUESTS.map((r) => ({
+        ...r,
+        images: [...r.images],
+      }));
+      this.saveToStorage(STORAGE_KEYS.TRADE_BORROW, this.tradeBorrowRequests);
+    }
+
     this.isLoaded = true;
   }
 
@@ -1107,5 +1227,143 @@ export class MockDatabaseService implements IDatabaseService {
       upvotesCount: post.upvotesCount,
       downvotesCount: post.downvotesCount,
     };
+  }
+
+  // ==========================================================================
+  // Trade & Borrow Requests (R4)
+  // ==========================================================================
+  async getTradeBorrowRequests(options?: GetTradeBorrowOptions): Promise<TradeBorrowRequest[]> {
+    this.init();
+    let items = [...this.tradeBorrowRequests];
+
+    if (options?.type && options.type !== 'all') {
+      items = items.filter((r) => r.requestType === options.type);
+    }
+
+    if (options?.category && options.category !== 'All') {
+      items = items.filter((r) => r.category === options.category);
+    }
+
+    if (options?.status) {
+      items = items.filter((r) => r.status === options.status);
+    }
+
+    if (options?.userId) {
+      items = items.filter((r) => r.userId === options.userId);
+    }
+
+    if (options?.search && options.search.trim()) {
+      const q = options.search.trim().toLowerCase();
+      items = items.filter(
+        (r) =>
+          r.title.toLowerCase().includes(q) ||
+          r.description.toLowerCase().includes(q) ||
+          r.duration.toLowerCase().includes(q)
+      );
+    }
+
+    const itemsWithProfiles = items.map((req) => {
+      const requester = this.profiles.find((p) => p.id === req.userId);
+      return {
+        ...req,
+        images: [...(req.images || [])],
+        requesterName: requester?.fullName || req.requesterName || 'Bennett Student',
+        requesterCourse: requester?.course || req.requesterCourse || 'B.Tech CSE',
+        requesterYear: requester?.year || req.requesterYear || 2,
+      };
+    });
+
+    return itemsWithProfiles.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }
+
+  async getTradeBorrowRequestById(id: string): Promise<TradeBorrowRequest | null> {
+    this.init();
+    const req = this.tradeBorrowRequests.find((r) => r.id === id);
+    if (!req) return null;
+
+    const requester = this.profiles.find((p) => p.id === req.userId);
+    return {
+      ...req,
+      images: [...(req.images || [])],
+      requesterName: requester?.fullName || req.requesterName || 'Bennett Student',
+      requesterCourse: requester?.course || req.requesterCourse || 'B.Tech CSE',
+      requesterYear: requester?.year || req.requesterYear || 2,
+    };
+  }
+
+  async createTradeBorrowRequest(
+    requestData: Omit<
+      TradeBorrowRequest,
+      'id' | 'createdAt' | 'updatedAt' | 'requesterName' | 'requesterCourse' | 'requesterYear'
+    >
+  ): Promise<TradeBorrowRequest> {
+    this.init();
+    const now = new Date().toISOString();
+    const requester = this.profiles.find((p) => p.id === requestData.userId);
+
+    const newRequest: TradeBorrowRequest = {
+      ...requestData,
+      id: `tbr-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      status: requestData.status || 'active',
+      images: Array.isArray(requestData.images) ? [...requestData.images].slice(0, 5) : [],
+      createdAt: now,
+      updatedAt: now,
+      requesterName: requester?.fullName || 'Bennett Student',
+      requesterCourse: requester?.course || 'B.Tech CSE',
+      requesterYear: requester?.year || 2,
+    };
+
+    this.tradeBorrowRequests.unshift(newRequest);
+    this.saveToStorage(STORAGE_KEYS.TRADE_BORROW, this.tradeBorrowRequests);
+    return { ...newRequest };
+  }
+
+  async updateTradeBorrowRequestStatus(
+    id: string,
+    status: BorrowTradeStatus,
+    userId: string
+  ): Promise<TradeBorrowRequest> {
+    this.init();
+    const req = this.tradeBorrowRequests.find((r) => r.id === id);
+    if (!req) {
+      throw new Error(`Trade/Borrow request not found: ${id}`);
+    }
+
+    if (req.userId !== userId) {
+      throw new Error('Unauthorized: only the request owner can update status');
+    }
+
+    req.status = status;
+    req.updatedAt = new Date().toISOString();
+
+    this.saveToStorage(STORAGE_KEYS.TRADE_BORROW, this.tradeBorrowRequests);
+
+    const requester = this.profiles.find((p) => p.id === req.userId);
+    return {
+      ...req,
+      images: [...(req.images || [])],
+      requesterName: requester?.fullName || req.requesterName || 'Bennett Student',
+      requesterCourse: requester?.course || req.requesterCourse || 'B.Tech CSE',
+      requesterYear: requester?.year || req.requesterYear || 2,
+    };
+  }
+
+  async deleteTradeBorrowRequest(id: string, userId: string): Promise<boolean> {
+    this.init();
+    const idx = this.tradeBorrowRequests.findIndex((r) => r.id === id);
+    if (idx === -1) {
+      throw new Error(`Trade/Borrow request not found: ${id}`);
+    }
+
+    const req = this.tradeBorrowRequests[idx];
+    if (req.userId !== userId) {
+      throw new Error('Unauthorized: only the request owner can delete request');
+    }
+
+    this.tradeBorrowRequests.splice(idx, 1);
+    this.saveToStorage(STORAGE_KEYS.TRADE_BORROW, this.tradeBorrowRequests);
+    return true;
   }
 }

@@ -236,6 +236,155 @@ export const SEED_LISTINGS = [
   }
 ];
 
+export const SEED_FEEDBACK_POSTS = [
+  {
+    id: 'seed_feedback_1',
+    userId: 'user_seed_mehak',
+    itemTitle: 'Hero Sprint cycle, 21-speed',
+    content: 'Bought this cycle from Aarav senior last month. The gears shift smoothly and it has made traveling from Hostel 4 so convenient! Great condition as promised.',
+    rating: 5,
+    images: [],
+    listingId: '1',
+    score: 12,
+    upvotesCount: 12,
+    downvotesCount: 0,
+    createdAt: new Date(Date.now() - 12 * 864e5).toISOString(),
+    updatedAt: new Date(Date.now() - 12 * 864e5).toISOString()
+  },
+  {
+    id: 'seed_feedback_2',
+    userId: 'user_seed_aarav',
+    itemTitle: 'Casio fx-991EX ClassWiz Calculator',
+    content: 'Essential calculator for engineering maths and matrix computations. Solar panel and battery both work without any hiccups. Very satisfied with the deal from Mehak.',
+    rating: 5,
+    images: [],
+    listingId: '2',
+    score: 8,
+    upvotesCount: 9,
+    downvotesCount: 1,
+    createdAt: new Date(Date.now() - 10 * 864e5).toISOString(),
+    updatedAt: new Date(Date.now() - 10 * 864e5).toISOString()
+  },
+  {
+    id: 'seed_feedback_3',
+    userId: 'user_seed_ishita',
+    itemTitle: 'Bennett University Lab Coat (Size M)',
+    content: 'Purchased this lab coat for chemistry experiments. Stitching is intact, clean Bennett logo patch on pocket. Saved 400 rupees compared to the campus tuck shop!',
+    rating: 4,
+    images: [],
+    score: 5,
+    upvotesCount: 5,
+    downvotesCount: 0,
+    createdAt: new Date(Date.now() - 8 * 864e5).toISOString(),
+    updatedAt: new Date(Date.now() - 8 * 864e5).toISOString()
+  },
+  {
+    id: 'seed_feedback_4',
+    userId: 'user_seed_rohan',
+    itemTitle: 'CLRS Introduction to Algorithms 3rd Edition',
+    content: 'Got this algorithms textbook in almost new condition, no pencil marks or torn pages. Perfect reference for data structures coursework.',
+    rating: 5,
+    images: [],
+    score: 15,
+    upvotesCount: 16,
+    downvotesCount: 1,
+    createdAt: new Date(Date.now() - 6 * 864e5).toISOString(),
+    updatedAt: new Date(Date.now() - 6 * 864e5).toISOString()
+  },
+  {
+    id: 'seed_feedback_5',
+    userId: 'user_seed_kabir',
+    itemTitle: 'Study lamp and extension board',
+    content: 'Lamp provides ample warm light for late night design projects in room. The surge protector extension board is a lifesaver for multiple chargers.',
+    rating: 4,
+    images: [],
+    listingId: '3',
+    score: 3,
+    upvotesCount: 4,
+    downvotesCount: 1,
+    createdAt: new Date(Date.now() - 3 * 864e5).toISOString(),
+    updatedAt: new Date(Date.now() - 3 * 864e5).toISOString()
+  }
+];
+
+export const SEED_TRADE_BORROW_REQUESTS = [
+  {
+    id: 'seed_trade_borrow_1',
+    userId: 'user_seed_aarav',
+    title: 'Casio fx-991EX Scientific Calculator',
+    description: 'Need for Calculus and Linear Algebra mid-term exams next week. Will handle with care!',
+    requestType: 'borrow',
+    duration: '3 days',
+    category: 'Electronics',
+    contactMethod: 'WhatsApp',
+    contactValue: '9876543221',
+    status: 'active',
+    images: [],
+    createdAt: new Date(Date.now() - 5 * 864e5).toISOString(),
+    updatedAt: new Date(Date.now() - 5 * 864e5).toISOString()
+  },
+  {
+    id: 'seed_trade_borrow_2',
+    userId: 'user_seed_mehak',
+    title: 'Bennett Lab Coat & Safety Goggles (Size M)',
+    description: 'Urgent borrow for Physics/Chemistry practicals this Thursday afternoon.',
+    requestType: 'borrow',
+    duration: '1 lab session / 3 hours',
+    category: 'Stationery & lab gear',
+    contactMethod: 'Phone',
+    contactValue: '9876543242',
+    status: 'active',
+    images: [],
+    createdAt: new Date(Date.now() - 4 * 864e5).toISOString(),
+    updatedAt: new Date(Date.now() - 4 * 864e5).toISOString()
+  },
+  {
+    id: 'seed_trade_borrow_3',
+    userId: 'user_seed_rohan',
+    title: 'Data Structures and Algorithms (Cormen / CLRS)',
+    description: 'Looking to trade my Computer Networks 5th Edition (Tanenbaum) for CLRS textbook for the ongoing semester.',
+    requestType: 'trade',
+    duration: '1 semester',
+    category: 'Books & notes',
+    contactMethod: 'WhatsApp',
+    contactValue: '9912345608',
+    status: 'active',
+    images: [],
+    createdAt: new Date(Date.now() - 3 * 864e5).toISOString(),
+    updatedAt: new Date(Date.now() - 3 * 864e5).toISOString()
+  },
+  {
+    id: 'seed_trade_borrow_4',
+    userId: 'user_seed_ishita',
+    title: 'HDMI to USB-C Display Adapter',
+    description: 'Need adapter for final year capstone project presentation in auditorium.',
+    requestType: 'borrow',
+    duration: '2 days',
+    category: 'Electronics',
+    contactMethod: 'Phone',
+    contactValue: '9612345630',
+    status: 'active',
+    images: [],
+    createdAt: new Date(Date.now() - 2 * 864e5).toISOString(),
+    updatedAt: new Date(Date.now() - 2 * 864e5).toISOString()
+  },
+  {
+    id: 'seed_trade_borrow_5',
+    userId: 'user_seed_kabir',
+    title: 'A3 Drawing Board & T-Square Ruler',
+    description: 'Looking to swap with acrylic paint set and canvas boards for Design Studio 2.',
+    requestType: 'trade',
+    duration: '2 weeks',
+    category: 'Stationery & lab gear',
+    contactMethod: 'WhatsApp',
+    contactValue: '9712345615',
+    status: 'fulfilled',
+    images: [],
+    createdAt: new Date(Date.now() - 1 * 864e5).toISOString(),
+    updatedAt: new Date(Date.now() - 1 * 864e5).toISOString()
+  }
+];
+
 function matchesId(item, id) {
   if (!item || id === undefined || id === null) return false;
   const target = String(id).trim();
@@ -263,6 +412,9 @@ export class MockDatabaseService {
     this.enquiries = [];
     this.reports = [];
     this.feedback = [];
+    this.feedbackPosts = structuredClone(SEED_FEEDBACK_POSTS);
+    this.feedbackVotes = [];
+    this.tradeBorrowRequests = structuredClone(SEED_TRADE_BORROW_REQUESTS);
     this.activeSessions = new Map();
     this.pendingOtps = new Map();
   }
@@ -695,6 +847,332 @@ export class MockDatabaseService {
   }
 
   /* -------------------------------------------------------------------------- */
+  /*                  FEEDBACK POSTS & REDDIT VOTING (R3)                       */
+  /* -------------------------------------------------------------------------- */
+
+  async getFeedbackPosts(options = {}) {
+    const { sort = 'top', viewerId } = options;
+    const postsWithJoins = this.feedbackPosts.map(post => {
+      const author = this.profiles.find(p => p.id === post.userId || p.email.toLowerCase() === String(post.userId).toLowerCase());
+      let userVote = 0;
+      if (viewerId) {
+        const vote = this.feedbackVotes.find(v => v.feedbackId === post.id && (v.userId === viewerId || String(v.userId).toLowerCase() === String(viewerId).toLowerCase()));
+        if (vote) userVote = vote.voteType;
+      }
+      return {
+        ...structuredClone(post),
+        authorName: author?.fullName || post.authorName || 'Bennett Student',
+        authorCourse: author?.course || post.authorCourse || 'B.Tech CSE',
+        authorYear: author?.year || post.authorYear || 2,
+        userVote
+      };
+    });
+
+    if (sort === 'newest') {
+      postsWithJoins.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    } else {
+      postsWithJoins.sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+    }
+
+    return postsWithJoins;
+  }
+
+  async getFeedbackPostById(id, viewerId) {
+    const post = this.feedbackPosts.find(p => p.id === id);
+    if (!post) return null;
+    const author = this.profiles.find(p => p.id === post.userId || p.email.toLowerCase() === String(post.userId).toLowerCase());
+    let userVote = 0;
+    if (viewerId) {
+      const vote = this.feedbackVotes.find(v => v.feedbackId === post.id && (v.userId === viewerId || String(v.userId).toLowerCase() === String(viewerId).toLowerCase()));
+      if (vote) userVote = vote.voteType;
+    }
+    return {
+      ...structuredClone(post),
+      authorName: author?.fullName || post.authorName || 'Bennett Student',
+      authorCourse: author?.course || post.authorCourse || 'B.Tech CSE',
+      authorYear: author?.year || post.authorYear || 2,
+      userVote
+    };
+  }
+
+  async createFeedbackPost(postData) {
+    if (!postData.userId) throw new Error("userId is required");
+    if (!postData.itemTitle || typeof postData.itemTitle !== 'string' || !postData.itemTitle.trim()) {
+      throw new Error("Title is required.");
+    }
+    if (postData.itemTitle.trim().length > 120) {
+      throw new Error("Title cannot exceed 120 characters.");
+    }
+    if (!postData.content || typeof postData.content !== 'string' || !postData.content.trim()) {
+      throw new Error("Content is required.");
+    }
+    if (postData.content.trim().length > 2000) {
+      throw new Error("Content cannot exceed 2000 characters.");
+    }
+    if (postData.rating !== undefined && postData.rating !== null) {
+      if (!Number.isInteger(postData.rating)) {
+        throw new Error("Rating must be an integer between 1 and 5.");
+      }
+      if (postData.rating < 1 || postData.rating > 5) {
+        throw new Error("Rating must be between 1 and 5.");
+      }
+    }
+
+    const safeImages = Array.isArray(postData.images)
+      ? postData.images.filter(img => typeof img === 'string' && img.trim().length > 0).slice(0, 3)
+      : [];
+
+    const id = `fb_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const now = new Date().toISOString();
+    const author = this.profiles.find(p => p.id === postData.userId || p.email.toLowerCase() === String(postData.userId).toLowerCase());
+
+    const record = {
+      id,
+      userId: postData.userId,
+      itemTitle: postData.itemTitle.trim(),
+      content: postData.content.trim(),
+      rating: postData.rating ?? undefined,
+      images: safeImages,
+      listingId: postData.listingId ? String(postData.listingId).trim() : undefined,
+      score: 0,
+      upvotesCount: 0,
+      downvotesCount: 0,
+      createdAt: now,
+      updatedAt: now,
+      authorName: author?.fullName || 'Bennett Student',
+      authorCourse: author?.course || 'B.Tech CSE',
+      authorYear: author?.year || 2,
+      userVote: 0
+    };
+
+    this.feedbackPosts.unshift(record);
+    return structuredClone(record);
+  }
+
+  async voteFeedbackPost(feedbackId, userId, voteType) {
+    if (!userId) throw new Error("Authentication required.");
+    if (!feedbackId) throw new Error("Feedback ID is required.");
+    if (voteType !== 1 && voteType !== -1) {
+      throw new Error("Invalid vote type: must be 1 (upvote) or -1 (downvote).");
+    }
+
+    const post = this.feedbackPosts.find(p => p.id === feedbackId);
+    if (!post) throw new Error(`Feedback not found: ${feedbackId}`);
+
+    const voteIndex = this.feedbackVotes.findIndex(v => v.feedbackId === feedbackId && (v.userId === userId || String(v.userId).toLowerCase() === String(userId).toLowerCase()));
+    let resultingUserVote = 0;
+
+    if (voteIndex === -1) {
+      this.feedbackVotes.push({
+        id: `fbv_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        feedbackId,
+        userId,
+        voteType,
+        createdAt: new Date().toISOString()
+      });
+      if (voteType === 1) {
+        post.upvotesCount += 1;
+        resultingUserVote = 1;
+      } else {
+        post.downvotesCount += 1;
+        resultingUserVote = -1;
+      }
+    } else {
+      const existingVote = this.feedbackVotes[voteIndex];
+      if (existingVote.voteType === voteType) {
+        // Toggle off
+        this.feedbackVotes.splice(voteIndex, 1);
+        if (voteType === 1) {
+          post.upvotesCount = Math.max(0, post.upvotesCount - 1);
+        } else {
+          post.downvotesCount = Math.max(0, post.downvotesCount - 1);
+        }
+        resultingUserVote = 0;
+      } else {
+        // Flip vote
+        existingVote.voteType = voteType;
+        if (voteType === 1) {
+          post.downvotesCount = Math.max(0, post.downvotesCount - 1);
+          post.upvotesCount += 1;
+          resultingUserVote = 1;
+        } else {
+          post.upvotesCount = Math.max(0, post.upvotesCount - 1);
+          post.downvotesCount += 1;
+          resultingUserVote = -1;
+        }
+      }
+    }
+
+    post.score = post.upvotesCount - post.downvotesCount;
+    post.updatedAt = new Date().toISOString();
+
+    return {
+      score: post.score,
+      userVote: resultingUserVote,
+      upvotesCount: post.upvotesCount,
+      downvotesCount: post.downvotesCount
+    };
+  }
+
+  /* -------------------------------------------------------------------------- */
+  /*                  TRADE & BORROW REQUESTS (R4)                              */
+  /* -------------------------------------------------------------------------- */
+
+  async getTradeBorrowRequests(options = {}) {
+    let results = this.tradeBorrowRequests.map(r => structuredClone(r));
+
+    if (options.type && options.type !== 'all') {
+      results = results.filter(r => r.requestType === options.type);
+    }
+    if (options.category && options.category !== 'All') {
+      const targetCat = normalizeCategory(options.category).toLowerCase();
+      results = results.filter(r => normalizeCategory(r.category).toLowerCase() === targetCat);
+    }
+    if (options.status) {
+      if (options.status !== 'all') {
+        results = results.filter(r => r.status === options.status);
+      }
+    } else if (!options.userId) {
+      results = results.filter(r => r.status === 'active');
+    }
+    if (options.userId) {
+      const uid = String(options.userId).trim().toLowerCase();
+      results = results.filter(r => r.userId.toLowerCase() === uid);
+    }
+    if (options.search && options.search.trim()) {
+      const q = options.search.trim().toLowerCase();
+      results = results.filter(r =>
+        r.title.toLowerCase().includes(q) ||
+        r.description.toLowerCase().includes(q) ||
+        r.duration.toLowerCase().includes(q)
+      );
+    }
+
+    results = results.map(req => {
+      const author = this.profiles.find(p => p.id === req.userId || p.email.toLowerCase() === String(req.userId).toLowerCase());
+      return {
+        ...req,
+        requesterName: author?.fullName || req.requesterName || 'Bennett Student',
+        requesterCourse: author?.course || req.requesterCourse || 'B.Tech CSE',
+        requesterYear: author?.year || req.requesterYear || 2
+      };
+    });
+
+    results.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return results;
+  }
+
+  async getTradeBorrowRequestById(id) {
+    const req = this.tradeBorrowRequests.find(r => r.id === id);
+    if (!req) return null;
+    const author = this.profiles.find(p => p.id === req.userId || p.email.toLowerCase() === String(req.userId).toLowerCase());
+    return {
+      ...structuredClone(req),
+      requesterName: author?.fullName || req.requesterName || 'Bennett Student',
+      requesterCourse: author?.course || req.requesterCourse || 'B.Tech CSE',
+      requesterYear: author?.year || req.requesterYear || 2
+    };
+  }
+
+  async createTradeBorrowRequest(requestData) {
+    if (!requestData.userId) throw new Error("userId is required");
+    if (!requestData.title || typeof requestData.title !== 'string' || !requestData.title.trim()) {
+      throw new Error("Title is required.");
+    }
+    if (requestData.title.trim().length > 120) {
+      throw new Error("Title cannot exceed 120 characters.");
+    }
+    if (!['borrow', 'trade'].includes(requestData.requestType)) {
+      throw new Error("Request type must be borrow or trade.");
+    }
+    if (!requestData.duration || typeof requestData.duration !== 'string' || !requestData.duration.trim()) {
+      throw new Error("Duration is required.");
+    }
+    if (requestData.duration.trim().length > 60) {
+      throw new Error("Duration cannot exceed 60 characters.");
+    }
+    const trimmedDur = requestData.duration.trim();
+    if (/^0+(\s*(days?|hours?|weeks?|months?))?$/i.test(trimmedDur)) {
+      throw new Error("Invalid duration: duration cannot be zero.");
+    }
+    if (/^-\d+/i.test(trimmedDur)) {
+      throw new Error("Invalid duration: duration cannot be negative.");
+    }
+    if (requestData.category && !LISTING_CATEGORIES.includes(requestData.category)) {
+      throw new Error(`Invalid category: ${requestData.category}`);
+    }
+
+    const id = `tbr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const safeImages = Array.isArray(requestData.images)
+      ? requestData.images.filter(img => typeof img === 'string' && img.trim().length > 0).slice(0, 5)
+      : [];
+    const author = this.profiles.find(p => p.id === requestData.userId || p.email.toLowerCase() === String(requestData.userId).toLowerCase());
+    const now = new Date().toISOString();
+
+    const record = {
+      id,
+      userId: requestData.userId,
+      title: requestData.title.trim(),
+      description: typeof requestData.description === 'string' ? requestData.description.trim() : '',
+      requestType: requestData.requestType,
+      duration: trimmedDur,
+      category: requestData.category || 'Other',
+      contactMethod: requestData.contactMethod || 'WhatsApp',
+      contactValue: requestData.contactValue ? String(requestData.contactValue).trim() : '',
+      status: requestData.status || 'active',
+      images: safeImages,
+      createdAt: now,
+      updatedAt: now,
+      requesterName: author?.fullName || 'Bennett Student',
+      requesterCourse: author?.course || 'B.Tech CSE',
+      requesterYear: author?.year || 2
+    };
+
+    this.tradeBorrowRequests.unshift(record);
+    return structuredClone(record);
+  }
+
+  async updateTradeBorrowRequestStatus(id, status, userId) {
+    if (!userId) throw new Error("Authentication required.");
+    const validStatuses = ['active', 'fulfilled', 'closed'];
+    if (!validStatuses.includes(status)) {
+      throw new Error("Invalid status: must be active, fulfilled, or closed");
+    }
+
+    const req = this.tradeBorrowRequests.find(r => r.id === id);
+    if (!req) throw new Error(`Trade/Borrow request not found: ${id}`);
+    if (req.userId !== userId && req.userId.toLowerCase() !== String(userId).toLowerCase()) {
+      throw new Error("Unauthorized: Only requester can update request status");
+    }
+
+    req.status = status;
+    req.updatedAt = new Date().toISOString();
+    const author = this.profiles.find(p => p.id === req.userId || p.email.toLowerCase() === String(req.userId).toLowerCase());
+    return {
+      ...structuredClone(req),
+      requesterName: author?.fullName || req.requesterName || 'Bennett Student',
+      requesterCourse: author?.course || req.requesterCourse || 'B.Tech CSE',
+      requesterYear: author?.year || req.requesterYear || 2
+    };
+  }
+
+  async deleteTradeBorrowRequest(id, userId) {
+    if (!userId) throw new Error("Authentication required.");
+    const idx = this.tradeBorrowRequests.findIndex(r => r.id === id);
+    if (idx === -1) throw new Error(`Trade/Borrow request not found: ${id}`);
+    const req = this.tradeBorrowRequests[idx];
+    if (req.userId !== userId && req.userId.toLowerCase() !== String(userId).toLowerCase()) {
+      throw new Error("Unauthorized: Only requester can delete request");
+    }
+
+    this.tradeBorrowRequests.splice(idx, 1);
+    return true;
+  }
+
+  /* -------------------------------------------------------------------------- */
   /*                            AUTH SIMULATION HELPERS                         */
   /* -------------------------------------------------------------------------- */
 
@@ -784,6 +1262,25 @@ export class E2EHarness {
   updateReportStatus(reportId, status) { return this.db.updateReportStatus(reportId, status); }
 
   createFeedback(feedback) { return this.db.createFeedback(feedback); }
+
+  // Feedback Posts & Reddit Voting (R3)
+  getFeedbackPosts(options) { return this.db.getFeedbackPosts(options); }
+  getFeedbackPostById(id, viewerId) { return this.db.getFeedbackPostById(id, viewerId); }
+  createFeedbackPost(post) { return this.db.createFeedbackPost(post); }
+  voteFeedbackPost(feedbackId, userId, voteType) { return this.db.voteFeedbackPost(feedbackId, userId, voteType); }
+
+  // Trade / Borrow Requests (R4)
+  getTradeBorrowRequests(options) { return this.db.getTradeBorrowRequests(options); }
+  getTradeBorrowRequestById(id) { return this.db.getTradeBorrowRequestById(id); }
+  createTradeBorrowRequest(request) { return this.db.createTradeBorrowRequest(request); }
+  updateTradeBorrowRequestStatus(id, status, userId) { return this.db.updateTradeBorrowRequestStatus(id, status, userId); }
+  deleteTradeBorrowRequest(id, userId) { return this.db.deleteTradeBorrowRequest(id, userId); }
+
+  // Price formatting helper matching ProfileDashboard.tsx:289
+  formatPrice(price) {
+    if (price === 0) return 'Free';
+    return `₹${Number(price || 0).toLocaleString('en-IN')}`;
+  }
 
   requestOTP(email) { return this.db.requestOTP(email); }
   verifyOTP(email, code) { return this.db.verifyOTP(email, code); }
