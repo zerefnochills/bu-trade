@@ -89,6 +89,34 @@ export interface Feedback {
   createdAt: string;
 }
 
+export interface FeedbackPost {
+  id: string;
+  userId: string;
+  itemTitle: string;
+  content: string;
+  rating?: number; // 1 to 5
+  images: string[];
+  listingId?: string;
+  score: number;
+  upvotesCount: number;
+  downvotesCount: number;
+  createdAt: string;
+  updatedAt: string;
+  // Joins
+  authorName?: string;
+  authorCourse?: string;
+  authorYear?: number;
+  userVote?: 1 | -1 | 0;
+}
+
+export interface FeedbackVote {
+  id: string;
+  feedbackId: string;
+  userId: string;
+  voteType: 1 | -1;
+  createdAt: string;
+}
+
 export interface GetListingsOptions {
   category?: ListingCategory | 'All';
   search?: string;
@@ -129,6 +157,38 @@ export interface IDatabaseService {
     status: 'pending' | 'investigating' | 'resolved' | 'dismissed'
   ): Promise<Report>;
 
-  // Feedback
+  // Feedback (Legacy)
   createFeedback(feedback: Omit<Feedback, 'id' | 'createdAt'>): Promise<Feedback>;
+
+  // Feedback Posts & Reddit Voting (R3)
+  getFeedbackPosts?(options?: {
+    sort?: 'top' | 'newest';
+    viewerId?: string;
+  }): Promise<FeedbackPost[]>;
+  getFeedbackPostById?(id: string, viewerId?: string): Promise<FeedbackPost | null>;
+  createFeedbackPost?(
+    post: Omit<
+      FeedbackPost,
+      | 'id'
+      | 'score'
+      | 'upvotesCount'
+      | 'downvotesCount'
+      | 'createdAt'
+      | 'updatedAt'
+      | 'authorName'
+      | 'authorCourse'
+      | 'authorYear'
+      | 'userVote'
+    >
+  ): Promise<FeedbackPost>;
+  voteFeedbackPost?(
+    feedbackId: string,
+    userId: string,
+    voteType: 1 | -1
+  ): Promise<{
+    score: number;
+    userVote: 1 | -1 | 0;
+    upvotesCount: number;
+    downvotesCount: number;
+  }>;
 }

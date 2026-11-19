@@ -8,6 +8,8 @@ import {
   ContactMethod,
   Enquiry,
   Feedback,
+  FeedbackPost,
+  FeedbackVote,
   GetListingsOptions,
   IDatabaseService,
   Listing,
@@ -21,6 +23,8 @@ const STORAGE_KEYS = {
   ENQUIRIES: 'bu_trade_mock_enquiries',
   REPORTS: 'bu_trade_mock_reports',
   FEEDBACK: 'bu_trade_mock_feedback',
+  FEEDBACK_POSTS: 'bu_trade_mock_feedback_posts',
+  FEEDBACK_VOTES: 'bu_trade_mock_feedback_votes',
 };
 
 // Realistic seed profiles
@@ -263,12 +267,101 @@ export const SEED_LISTINGS: Listing[] = [
   },
 ];
 
+// Realistic seed feedbacks from Bennett University students
+export const SEED_FEEDBACK_POSTS: FeedbackPost[] = [
+  {
+    id: 'seed-feedback-1',
+    userId: 'seed-user-2',
+    itemTitle: 'Hero Sprint cycle, 21-speed',
+    content: 'Bought this cycle from Aarav senior last month. The gears shift smoothly and it has made traveling from Hostel 4 to the mechanical lab so convenient! Great condition as promised.',
+    rating: 5,
+    images: [],
+    listingId: 'seed-listing-1',
+    score: 12,
+    upvotesCount: 12,
+    downvotesCount: 0,
+    createdAt: new Date(Date.now() - 12 * 86400000).toISOString(),
+    updatedAt: new Date(Date.now() - 12 * 86400000).toISOString(),
+    authorName: 'Mehak Kaur',
+    authorCourse: 'B.Tech ECE',
+    authorYear: 2,
+  },
+  {
+    id: 'seed-feedback-2',
+    userId: 'seed-user-1',
+    itemTitle: 'Casio fx-991EX ClassWiz Calculator',
+    content: 'Essential calculator for engineering maths and matrix computations. Solar panel and battery both work without any hiccups. Very satisfied with the deal from Mehak.',
+    rating: 5,
+    images: [],
+    listingId: 'seed-listing-2',
+    score: 8,
+    upvotesCount: 9,
+    downvotesCount: 1,
+    createdAt: new Date(Date.now() - 10 * 86400000).toISOString(),
+    updatedAt: new Date(Date.now() - 10 * 86400000).toISOString(),
+    authorName: 'Aarav Sharma',
+    authorCourse: 'B.Tech CSE',
+    authorYear: 3,
+  },
+  {
+    id: 'seed-feedback-3',
+    userId: 'seed-user-4',
+    itemTitle: 'Bennett University Lab Coat (Size M)',
+    content: 'Purchased this lab coat for chemistry experiments. Stitching is intact, clean Bennett logo patch on pocket. Saved 400 rupees compared to the campus tuck shop!',
+    rating: 4,
+    images: [],
+    score: 5,
+    upvotesCount: 5,
+    downvotesCount: 0,
+    createdAt: new Date(Date.now() - 8 * 86400000).toISOString(),
+    updatedAt: new Date(Date.now() - 8 * 86400000).toISOString(),
+    authorName: 'Ishita Mishra',
+    authorCourse: 'B.Tech CSE',
+    authorYear: 4,
+  },
+  {
+    id: 'seed-feedback-4',
+    userId: 'seed-user-3',
+    itemTitle: 'CLRS Introduction to Algorithms 3rd Edition',
+    content: 'Got this algorithms textbook in almost new condition, no pencil marks or torn pages. Perfect reference for data structures coursework.',
+    rating: 5,
+    images: [],
+    score: 15,
+    upvotesCount: 16,
+    downvotesCount: 1,
+    createdAt: new Date(Date.now() - 6 * 86400000).toISOString(),
+    updatedAt: new Date(Date.now() - 6 * 86400000).toISOString(),
+    authorName: 'Rohan Verma',
+    authorCourse: 'BBA',
+    authorYear: 2,
+  },
+  {
+    id: 'seed-feedback-5',
+    userId: 'seed-user-5',
+    itemTitle: 'Study lamp and extension board',
+    content: 'Lamp provides ample warm light for late night design projects in room. The surge protector extension board is a lifesaver for multiple chargers.',
+    rating: 4,
+    images: [],
+    listingId: 'seed-listing-3',
+    score: 3,
+    upvotesCount: 4,
+    downvotesCount: 1,
+    createdAt: new Date(Date.now() - 3 * 86400000).toISOString(),
+    updatedAt: new Date(Date.now() - 3 * 86400000).toISOString(),
+    authorName: 'Kabir Tyagi',
+    authorCourse: 'B.Des',
+    authorYear: 1,
+  },
+];
+
 export class MockDatabaseService implements IDatabaseService {
   private profiles: Profile[] = [];
   private listings: Listing[] = [];
   private enquiries: Enquiry[] = [];
   private reports: Report[] = [];
   private feedback: Feedback[] = [];
+  private feedbackPosts: FeedbackPost[] = [];
+  private feedbackVotes: FeedbackVote[] = [];
   private isLoaded = false;
 
   constructor() {
@@ -307,12 +400,16 @@ export class MockDatabaseService implements IDatabaseService {
       this.enquiries = [];
       this.reports = [];
       this.feedback = [];
+      this.feedbackPosts = SEED_FEEDBACK_POSTS.map((p) => ({ ...p, images: [...p.images] }));
+      this.feedbackVotes = [];
 
       this.saveToStorage(STORAGE_KEYS.PROFILES, this.profiles);
       this.saveToStorage(STORAGE_KEYS.LISTINGS, this.listings);
       this.saveToStorage(STORAGE_KEYS.ENQUIRIES, this.enquiries);
       this.saveToStorage(STORAGE_KEYS.REPORTS, this.reports);
       this.saveToStorage(STORAGE_KEYS.FEEDBACK, this.feedback);
+      this.saveToStorage(STORAGE_KEYS.FEEDBACK_POSTS, this.feedbackPosts);
+      this.saveToStorage(STORAGE_KEYS.FEEDBACK_VOTES, this.feedbackVotes);
       this.isLoaded = true;
       return;
     }
@@ -337,6 +434,19 @@ export class MockDatabaseService implements IDatabaseService {
     this.enquiries = this.loadFromStorage<Enquiry[]>(STORAGE_KEYS.ENQUIRIES, []);
     this.reports = this.loadFromStorage<Report[]>(STORAGE_KEYS.REPORTS, []);
     this.feedback = this.loadFromStorage<Feedback[]>(STORAGE_KEYS.FEEDBACK, []);
+
+    const storedFeedbackPosts = this.loadFromStorage<FeedbackPost[] | null>(
+      STORAGE_KEYS.FEEDBACK_POSTS,
+      null
+    );
+    if (storedFeedbackPosts && storedFeedbackPosts.length > 0) {
+      this.feedbackPosts = storedFeedbackPosts;
+    } else {
+      this.feedbackPosts = SEED_FEEDBACK_POSTS.map((p) => ({ ...p, images: [...p.images] }));
+      this.saveToStorage(STORAGE_KEYS.FEEDBACK_POSTS, this.feedbackPosts);
+    }
+
+    this.feedbackVotes = this.loadFromStorage<FeedbackVote[]>(STORAGE_KEYS.FEEDBACK_VOTES, []);
     this.isLoaded = true;
   }
 
@@ -794,5 +904,208 @@ export class MockDatabaseService implements IDatabaseService {
     this.feedback.push(newFeedback);
     this.saveToStorage(STORAGE_KEYS.FEEDBACK, this.feedback);
     return { ...newFeedback };
+  }
+
+  // ==========================================================================
+  // Feedback Posts & Reddit Voting (R3)
+  // ==========================================================================
+  async getFeedbackPosts(options?: {
+    sort?: 'top' | 'newest';
+    viewerId?: string;
+  }): Promise<FeedbackPost[]> {
+    this.init();
+    const { sort = 'top', viewerId } = options || {};
+
+    const postsWithJoins: FeedbackPost[] = this.feedbackPosts.map((post) => {
+      const author = this.profiles.find((p) => p.id === post.userId);
+      let userVote: 1 | -1 | 0 = 0;
+      if (viewerId) {
+        const vote = this.feedbackVotes.find(
+          (v) => v.feedbackId === post.id && v.userId === viewerId
+        );
+        if (vote) {
+          userVote = vote.voteType;
+        }
+      }
+
+      return {
+        ...post,
+        images: [...(post.images || [])],
+        authorName: author?.fullName || post.authorName || 'Bennett Student',
+        authorCourse: author?.course || post.authorCourse || 'B.Tech CSE',
+        authorYear: author?.year || post.authorYear || 2,
+        userVote,
+      };
+    });
+
+    if (sort === 'newest') {
+      postsWithJoins.sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+    } else {
+      // 'top': primary sort by score desc, secondary sort by newest
+      postsWithJoins.sort((a, b) => {
+        if (b.score !== a.score) {
+          return b.score - a.score;
+        }
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+    }
+
+    return postsWithJoins;
+  }
+
+  async getFeedbackPostById(id: string, viewerId?: string): Promise<FeedbackPost | null> {
+    this.init();
+    const post = this.feedbackPosts.find((p) => p.id === id);
+    if (!post) return null;
+
+    const author = this.profiles.find((p) => p.id === post.userId);
+    let userVote: 1 | -1 | 0 = 0;
+    if (viewerId) {
+      const vote = this.feedbackVotes.find(
+        (v) => v.feedbackId === post.id && v.userId === viewerId
+      );
+      if (vote) {
+        userVote = vote.voteType;
+      }
+    }
+
+    return {
+      ...post,
+      images: [...(post.images || [])],
+      authorName: author?.fullName || post.authorName || 'Bennett Student',
+      authorCourse: author?.course || post.authorCourse || 'B.Tech CSE',
+      authorYear: author?.year || post.authorYear || 2,
+      userVote,
+    };
+  }
+
+  async createFeedbackPost(
+    postData: Omit<
+      FeedbackPost,
+      | 'id'
+      | 'score'
+      | 'upvotesCount'
+      | 'downvotesCount'
+      | 'createdAt'
+      | 'updatedAt'
+      | 'authorName'
+      | 'authorCourse'
+      | 'authorYear'
+      | 'userVote'
+    >
+  ): Promise<FeedbackPost> {
+    this.init();
+    const now = new Date().toISOString();
+    const author = this.profiles.find((p) => p.id === postData.userId);
+
+    const newPost: FeedbackPost = {
+      ...postData,
+      id: `fb-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      images: Array.isArray(postData.images) ? [...postData.images].slice(0, 3) : [],
+      score: 0,
+      upvotesCount: 0,
+      downvotesCount: 0,
+      createdAt: now,
+      updatedAt: now,
+      authorName: author?.fullName || 'Bennett Student',
+      authorCourse: author?.course || 'B.Tech CSE',
+      authorYear: author?.year || 2,
+      userVote: 0,
+    };
+
+    this.feedbackPosts.unshift(newPost);
+    this.saveToStorage(STORAGE_KEYS.FEEDBACK_POSTS, this.feedbackPosts);
+    return { ...newPost };
+  }
+
+  async voteFeedbackPost(
+    feedbackId: string,
+    userId: string,
+    voteType: 1 | -1
+  ): Promise<{
+    score: number;
+    userVote: 1 | -1 | 0;
+    upvotesCount: number;
+    downvotesCount: number;
+  }> {
+    this.init();
+    const post = this.feedbackPosts.find((p) => p.id === feedbackId);
+    if (!post) {
+      throw new Error(`Feedback not found: ${feedbackId}`);
+    }
+
+    const voteIndex = this.feedbackVotes.findIndex(
+      (v) => v.feedbackId === feedbackId && v.userId === userId
+    );
+
+    let resultingUserVote: 1 | -1 | 0 = 0;
+
+    if (voteIndex === -1) {
+      // Scenario 1 & 3: Unvoted -> cast vote
+      const newVote: FeedbackVote = {
+        id: `fbv-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        feedbackId,
+        userId,
+        voteType,
+        createdAt: new Date().toISOString(),
+      };
+      this.feedbackVotes.push(newVote);
+
+      if (voteType === 1) {
+        post.upvotesCount += 1;
+        post.score += 1;
+        resultingUserVote = 1;
+      } else {
+        post.downvotesCount += 1;
+        post.score -= 1;
+        resultingUserVote = -1;
+      }
+    } else {
+      const existingVote = this.feedbackVotes[voteIndex];
+      if (existingVote.voteType === voteType) {
+        // Scenario 2 & 4: Toggle off (same vote clicked again)
+        this.feedbackVotes.splice(voteIndex, 1);
+        if (voteType === 1) {
+          post.upvotesCount = Math.max(0, post.upvotesCount - 1);
+          post.score -= 1;
+        } else {
+          post.downvotesCount = Math.max(0, post.downvotesCount - 1);
+          post.score += 1;
+        }
+        resultingUserVote = 0;
+      } else {
+        // Scenario 5 & 6: Vote flipped (1 -> -1 or -1 -> 1)
+        existingVote.voteType = voteType;
+        if (voteType === 1) {
+          // Downvote -> Upvote
+          post.downvotesCount = Math.max(0, post.downvotesCount - 1);
+          post.upvotesCount += 1;
+          post.score += 2;
+          resultingUserVote = 1;
+        } else {
+          // Upvote -> Downvote
+          post.upvotesCount = Math.max(0, post.upvotesCount - 1);
+          post.downvotesCount += 1;
+          post.score -= 2;
+          resultingUserVote = -1;
+        }
+      }
+    }
+
+    // Mathematical invariant: score === upvotesCount - downvotesCount
+    post.score = post.upvotesCount - post.downvotesCount;
+    post.updatedAt = new Date().toISOString();
+
+    this.saveToStorage(STORAGE_KEYS.FEEDBACK_POSTS, this.feedbackPosts);
+    this.saveToStorage(STORAGE_KEYS.FEEDBACK_VOTES, this.feedbackVotes);
+
+    return {
+      score: post.score,
+      userVote: resultingUserVote,
+      upvotesCount: post.upvotesCount,
+      downvotesCount: post.downvotesCount,
+    };
   }
 }

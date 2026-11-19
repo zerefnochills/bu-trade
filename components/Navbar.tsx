@@ -19,6 +19,7 @@ export default function Navbar({ user }: NavbarProps) {
 
   const navLinks = [
     { label: 'Home', href: '/' },
+    { label: 'Feedbacks', href: '/feedbacks' },
     { label: 'Sell an item', href: '/sell' },
     { label: 'My listings', href: '/profile' },
     { label: 'Safety', href: '/rules' },

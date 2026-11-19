@@ -16,25 +16,33 @@ let TradeBorrowCard: any;
 let TradeBorrowFeed: any;
 let CreateTradeBorrowModal: any;
 
-let isTradeBorrowImplemented = false;
+let isTradeBorrowActionsImplemented = false;
 try {
   const tbActions = require('@/app/actions/trade-borrow');
   createTradeBorrowRequestAction = tbActions.createTradeBorrowRequestAction;
   updateTradeBorrowRequestStatusAction = tbActions.updateTradeBorrowRequestStatusAction;
   deleteTradeBorrowRequestAction = tbActions.deleteTradeBorrowRequestAction;
+  isTradeBorrowActionsImplemented = Boolean(
+    typeof createTradeBorrowRequestAction === 'function' &&
+    typeof updateTradeBorrowRequestStatusAction === 'function' &&
+    typeof deleteTradeBorrowRequestAction === 'function'
+  );
+} catch {
+  isTradeBorrowActionsImplemented = false;
+}
+
+let isTradeBorrowComponentsImplemented = false;
+try {
   TradeBorrowCard = require('@/components/TradeBorrowCard').default || require('@/components/TradeBorrowCard');
   TradeBorrowFeed = require('@/components/TradeBorrowFeed').default || require('@/components/TradeBorrowFeed');
   CreateTradeBorrowModal = require('@/components/CreateTradeBorrowModal').default || require('@/components/CreateTradeBorrowModal');
-  isTradeBorrowImplemented = Boolean(
-    createTradeBorrowRequestAction &&
-    updateTradeBorrowRequestStatusAction &&
-    deleteTradeBorrowRequestAction &&
+  isTradeBorrowComponentsImplemented = Boolean(
     TradeBorrowCard &&
     TradeBorrowFeed &&
     CreateTradeBorrowModal
   );
 } catch {
-  isTradeBorrowImplemented = false;
+  isTradeBorrowComponentsImplemented = false;
 }
 
 let isDbTradeBorrowImplemented = false;
@@ -164,7 +172,8 @@ const mockRequests: TradeBorrowRequest[] = [
 ];
 
 // Progressive testability wrappers: execute when application modules are implemented
-const describeTradeBorrow = isTradeBorrowImplemented ? describe : describe.skip;
+const describeTradeBorrowActions = isTradeBorrowActionsImplemented ? describe : describe.skip;
+const describeTradeBorrowComponents = isTradeBorrowComponentsImplemented ? describe : describe.skip;
 const describeDb = isDbTradeBorrowImplemented ? describe : describe.skip;
 
 describe('Trade/Borrow Feature Test Suite', () => {
@@ -176,7 +185,7 @@ describe('Trade/Borrow Feature Test Suite', () => {
   // ============================================================================
   // SUITE 1: Server Actions Unit Tests (`app/actions/trade-borrow.ts`)
   // ============================================================================
-  describeTradeBorrow('1. Server Actions Unit Tests', () => {
+  describeTradeBorrowActions('1. Server Actions Unit Tests', () => {
     describe('Authentication Verification', () => {
       it('rejects unauthenticated requests to create trade/borrow request', async () => {
         const res = await createTradeBorrowRequestAction({
@@ -191,6 +200,22 @@ describe('Trade/Borrow Feature Test Suite', () => {
 
         expect(res.success).toBe(false);
         expect(res.error).toMatch(/Authentication required/i);
+      });
+
+      it('rejects unauthenticated requests to update request status', async () => {
+        _setTestSession(null);
+        const res = await updateTradeBorrowRequestStatusAction('req-unauth-test', 'fulfilled');
+
+        expect(res.success).toBe(false);
+        expect(res.error).toMatch(/Authentication required|unauthorized/i);
+      });
+
+      it('rejects unauthenticated requests to delete a request', async () => {
+        _setTestSession(null);
+        const res = await deleteTradeBorrowRequestAction('req-unauth-test');
+
+        expect(res.success).toBe(false);
+        expect(res.error).toMatch(/Authentication required|unauthorized/i);
       });
 
       it('accepts authenticated request from Bennett student', async () => {
@@ -319,6 +344,42 @@ describe('Trade/Borrow Feature Test Suite', () => {
 
         expect(res.success).toBe(false);
         expect(res.error).toMatch(/Duration cannot exceed/i);
+      });
+
+      it('rejects negative duration timeframes', async () => {
+        const negativeDurations = ['-3 days', '-1', '-2 weeks', '-5 hours'];
+        for (const duration of negativeDurations) {
+          const res = await createTradeBorrowRequestAction({
+            title: 'Valid Title',
+            description: 'Valid description',
+            requestType: 'borrow',
+            duration,
+            category: 'Electronics',
+            contactMethod: 'WhatsApp',
+            contactValue: '9876543210',
+          });
+
+          expect(res.success).toBe(false);
+          expect(res.error).toMatch(/duration/i);
+        }
+      });
+
+      it('rejects zero duration timeframes', async () => {
+        const zeroDurations = ['0 days', '0 hours', '0'];
+        for (const duration of zeroDurations) {
+          const res = await createTradeBorrowRequestAction({
+            title: 'Valid Title',
+            description: 'Valid description',
+            requestType: 'borrow',
+            duration,
+            category: 'Electronics',
+            contactMethod: 'WhatsApp',
+            contactValue: '9876543210',
+          });
+
+          expect(res.success).toBe(false);
+          expect(res.error).toMatch(/duration/i);
+        }
       });
 
       it('accepts realistic campus duration timeframes', async () => {
@@ -463,6 +524,65 @@ describe('Trade/Borrow Feature Test Suite', () => {
         expect(updateRes.error).toMatch(/Unauthorized/i);
       });
 
+      it('prevents non-owner from deleting someone else request', async () => {
+        _setTestSession({
+          userId: 'owner-user-del',
+          id: 'owner-user-del',
+          email: 'owner-del@bennett.edu.in',
+          onboardingNeeded: false,
+          isOnboarded: true,
+        });
+
+        const createRes = await createTradeBorrowRequestAction({
+          title: 'Study Lamp for Borrow',
+          description: 'Need for exam prep',
+          requestType: 'borrow',
+          duration: '3 days',
+          category: 'Hostel essentials',
+          contactMethod: 'WhatsApp',
+          contactValue: '+91 98765 43210',
+        });
+        const requestId = createRes.request!.id;
+
+        // Switch to different student / intruder
+        _setTestSession({
+          userId: 'intruder-user-del',
+          id: 'intruder-user-del',
+          email: 'intruder-del@bennett.edu.in',
+          onboardingNeeded: false,
+          isOnboarded: true,
+        });
+
+        const delRes = await deleteTradeBorrowRequestAction(requestId);
+        expect(delRes.success).toBe(false);
+        expect(delRes.error).toMatch(/unauthorized/i);
+      });
+
+      it('rejects invalid status transitions', async () => {
+        _setTestSession({
+          userId: 'owner-status-val',
+          id: 'owner-status-val',
+          email: 'owner-status@bennett.edu.in',
+          onboardingNeeded: false,
+          isOnboarded: true,
+        });
+
+        const createRes = await createTradeBorrowRequestAction({
+          title: 'Item for Status Validation',
+          description: 'Testing invalid status transition',
+          requestType: 'borrow',
+          duration: '2 days',
+          category: 'Electronics',
+          contactMethod: 'WhatsApp',
+          contactValue: '9876543210',
+        });
+        const requestId = createRes.request!.id;
+
+        const updateRes = await updateTradeBorrowRequestStatusAction(requestId, 'invalid_status' as any);
+        expect(updateRes.success).toBe(false);
+        expect(updateRes.error).toMatch(/invalid status/i);
+      });
+
       it('allows owner to mark request as fulfilled or closed', async () => {
         const ownerId = `owner-${Date.now()}`;
         _setTestSession({
@@ -597,7 +717,7 @@ describe('Trade/Borrow Feature Test Suite', () => {
   // ============================================================================
   // SUITE 3: Component Rendering Tests (`TradeBorrowCard.tsx`)
   // ============================================================================
-  describeTradeBorrow('3. TradeBorrowCard Component', () => {
+  describeTradeBorrowComponents('3. TradeBorrowCard Component', () => {
     it('renders BORROW badge for borrow requests with duration pill', () => {
       render(<TradeBorrowCard request={mockRequests[0]} />);
 
@@ -639,7 +759,7 @@ describe('Trade/Borrow Feature Test Suite', () => {
   // ============================================================================
   // SUITE 4: Feed Coordinator Tests (`TradeBorrowFeed.tsx`)
   // ============================================================================
-  describeTradeBorrow('4. TradeBorrowFeed Component', () => {
+  describeTradeBorrowComponents('4. TradeBorrowFeed Component', () => {
     it('renders all initial requests by default', () => {
       render(<TradeBorrowFeed initialRequests={mockRequests} />);
 
@@ -728,7 +848,7 @@ describe('Trade/Borrow Feature Test Suite', () => {
   // ============================================================================
   // SUITE 5: Modal Component Tests (`CreateTradeBorrowModal.tsx`)
   // ============================================================================
-  describeTradeBorrow('5. CreateTradeBorrowModal Component', () => {
+  describeTradeBorrowComponents('5. CreateTradeBorrowModal Component', () => {
     it('renders all required form controls when open', () => {
       render(
         <CreateTradeBorrowModal

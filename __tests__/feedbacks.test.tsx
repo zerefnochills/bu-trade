@@ -15,24 +15,33 @@ let FeedbackCard: any;
 let FeedbackFeed: any;
 let CreateFeedbackModal: any;
 
-let isFeedbackImplemented = false;
+let isFeedbackActionsImplemented = false;
 try {
   const fbActions = require('@/app/actions/feedback');
   createFeedbackAction = fbActions.createFeedbackAction;
   voteFeedbackAction = fbActions.voteFeedbackAction;
   getFeedbacksAction = fbActions.getFeedbacksAction;
+  isFeedbackActionsImplemented = Boolean(
+    typeof createFeedbackAction === 'function' &&
+    typeof voteFeedbackAction === 'function' &&
+    typeof getFeedbacksAction === 'function'
+  );
+} catch {
+  isFeedbackActionsImplemented = false;
+}
+
+let isFeedbackComponentsImplemented = false;
+try {
   FeedbackCard = require('@/components/FeedbackCard').default || require('@/components/FeedbackCard');
   FeedbackFeed = require('@/components/FeedbackFeed').default || require('@/components/FeedbackFeed');
   CreateFeedbackModal = require('@/components/CreateFeedbackModal').default || require('@/components/CreateFeedbackModal');
-  isFeedbackImplemented = Boolean(
-    createFeedbackAction &&
-    voteFeedbackAction &&
+  isFeedbackComponentsImplemented = Boolean(
     FeedbackCard &&
     FeedbackFeed &&
     CreateFeedbackModal
   );
 } catch {
-  isFeedbackImplemented = false;
+  isFeedbackComponentsImplemented = false;
 }
 
 // Canonical Feedback interfaces as defined in PROJECT.md
@@ -104,19 +113,29 @@ const mockFeedbackPost: FeedbackPost = {
   authorYear: 3,
 };
 
-// Progressive testability wrapper: executes when application modules are implemented
-const describeFeedback = isFeedbackImplemented ? describe : describe.skip;
+// Progressive testability wrappers: execute when application modules are implemented
+const describeFeedbackActions = isFeedbackActionsImplemented ? describe : describe.skip;
+const describeFeedbackComponents = isFeedbackComponentsImplemented ? describe : describe.skip;
 
 describe('Feedbacks & Reddit Voting Engine Test Suite', () => {
   beforeEach(() => {
     _setTestSession(null);
     jest.clearAllMocks();
+    try {
+      const { getDatabaseService } = require('@/lib/db');
+      const db = getDatabaseService();
+      if (typeof db.init === 'function') {
+        db.init(true);
+      }
+    } catch {
+      // Graceful fallback
+    }
   });
 
   // --------------------------------------------------------------------------
   // Suite 1: Authentication & Authorization
   // --------------------------------------------------------------------------
-  describeFeedback('1. Authentication Verification', () => {
+  describeFeedbackActions('1. Authentication Verification', () => {
     it('rejects feedback creation when user is unauthenticated', async () => {
       _setTestSession(null);
       const res = await createFeedbackAction({
@@ -162,7 +181,7 @@ describe('Feedbacks & Reddit Voting Engine Test Suite', () => {
   // --------------------------------------------------------------------------
   // Suite 2: Input Validation & Boundary Value Analysis
   // --------------------------------------------------------------------------
-  describeFeedback('2. Validation & Boundary Value Analysis', () => {
+  describeFeedbackActions('2. Validation & Boundary Value Analysis', () => {
     beforeEach(() => {
       _setTestSession({
         userId: 'student-validator-1',
@@ -302,12 +321,62 @@ describe('Feedbacks & Reddit Voting Engine Test Suite', () => {
       expect(res.success).toBe(true);
       expect(res.feedback?.images.length).toBeLessThanOrEqual(3);
     });
+
+    describe('Vote Type Validation & Boundary Testing', () => {
+      let testFeedbackId: string;
+
+      beforeEach(async () => {
+        _setTestSession({
+          userId: 'student-validator-1',
+          id: 'student-validator-1',
+          email: 'validator@bennett.edu.in',
+          onboardingNeeded: false,
+          isOnboarded: true,
+        });
+
+        const created = await createFeedbackAction({
+          itemTitle: 'Item for Vote Validation',
+          content: 'Testing invalid vote types.',
+        });
+        testFeedbackId = created.feedback!.id;
+      });
+
+      it('rejects voteType of 0 (neutral/unsupported direct vote value)', async () => {
+        const res = await voteFeedbackAction(testFeedbackId, 0 as any);
+        expect(res.success).toBe(false);
+        expect(res.error).toMatch(/Invalid vote type/i);
+      });
+
+      it('rejects voteType of 2 (overflow boundary above +1)', async () => {
+        const res = await voteFeedbackAction(testFeedbackId, 2 as any);
+        expect(res.success).toBe(false);
+        expect(res.error).toMatch(/Invalid vote type/i);
+      });
+
+      it('rejects voteType of -2 (underflow boundary below -1)', async () => {
+        const res = await voteFeedbackAction(testFeedbackId, -2 as any);
+        expect(res.success).toBe(false);
+        expect(res.error).toMatch(/Invalid vote type/i);
+      });
+
+      it('rejects non-numeric string voteType like "up"', async () => {
+        const res = await voteFeedbackAction(testFeedbackId, 'up' as any);
+        expect(res.success).toBe(false);
+        expect(res.error).toMatch(/Invalid vote type/i);
+      });
+
+      it('rejects empty string feedbackId', async () => {
+        const res = await voteFeedbackAction('', 1);
+        expect(res.success).toBe(false);
+        expect(res.error).toMatch(/Feedback ID is required/i);
+      });
+    });
   });
 
   // --------------------------------------------------------------------------
   // Suite 3: Reddit-Style Voting Mechanics (State Transitions & Math Invariants)
   // --------------------------------------------------------------------------
-  describeFeedback('3. Reddit-Style Voting Mechanics', () => {
+  describeFeedbackActions('3. Reddit-Style Voting Mechanics', () => {
     let createdFeedbackId: string;
 
     beforeEach(async () => {
@@ -485,9 +554,181 @@ describe('Feedbacks & Reddit Voting Engine Test Suite', () => {
   });
 
   // --------------------------------------------------------------------------
-  // Suite 4: Component Rendering & UI Assertions (FeedbackCard)
+  // Suite 4: Database State Persistence & Feed Retrieval (getFeedbacksAction)
   // --------------------------------------------------------------------------
-  describeFeedback('4. FeedbackCard Component', () => {
+  describeFeedbackActions('4. Database State Persistence & Feed Retrieval', () => {
+    it('fetches initial feedback posts with canonical fields and author enrichment', async () => {
+      const posts = await getFeedbacksAction();
+      expect(Array.isArray(posts)).toBe(true);
+      expect(posts.length).toBeGreaterThan(0);
+
+      const firstPost = posts[0];
+      expect(firstPost.id).toBeDefined();
+      expect(firstPost.itemTitle).toBeDefined();
+      expect(firstPost.content).toBeDefined();
+      expect(typeof firstPost.score).toBe('number');
+      expect(typeof firstPost.upvotesCount).toBe('number');
+      expect(typeof firstPost.downvotesCount).toBe('number');
+      expect(firstPost.authorName).toBeDefined();
+    });
+
+    it('persists created feedback post in database across subsequent getFeedbacksAction calls', async () => {
+      _setTestSession({
+        userId: 'student-persister-1',
+        id: 'student-persister-1',
+        email: 'persister@bennett.edu.in',
+        onboardingNeeded: false,
+        isOnboarded: true,
+      });
+
+      const createRes = await createFeedbackAction({
+        itemTitle: 'Study Table Lamp with USB Port',
+        content: 'Provides warm illumination for late night exam sessions.',
+        rating: 5,
+        images: ['data:image/webp;base64,lamp'],
+      });
+
+      expect(createRes.success).toBe(true);
+      const createdId = createRes.feedback!.id;
+
+      // Query database via getFeedbacksAction
+      const posts = await getFeedbacksAction('newest');
+      const found = posts.find((p: FeedbackPost) => p.id === createdId);
+
+      expect(found).toBeDefined();
+      expect(found?.itemTitle).toBe('Study Table Lamp with USB Port');
+      expect(found?.content).toBe('Provides warm illumination for late night exam sessions.');
+      expect(found?.rating).toBe(5);
+      expect(found?.score).toBe(0);
+      expect(found?.upvotesCount).toBe(0);
+      expect(found?.downvotesCount).toBe(0);
+      expect(found?.images).toEqual(['data:image/webp;base64,lamp']);
+    });
+
+    it('persists vote mutations and reflects updated score and counts in subsequent queries', async () => {
+      _setTestSession({
+        userId: 'author-user-vote',
+        id: 'author-user-vote',
+        email: 'author-vote@bennett.edu.in',
+        onboardingNeeded: false,
+        isOnboarded: true,
+      });
+
+      const createRes = await createFeedbackAction({
+        itemTitle: 'Scientific Calculator fx-991EX',
+        content: 'Works flawlessly for exams.',
+      });
+      const feedbackId = createRes.feedback!.id;
+
+      // Voter 1 casts an upvote (+1)
+      _setTestSession({
+        userId: 'voter-db-1',
+        id: 'voter-db-1',
+        email: 'voter1@bennett.edu.in',
+        onboardingNeeded: false,
+        isOnboarded: true,
+      });
+
+      const voteRes = await voteFeedbackAction(feedbackId, 1);
+      expect(voteRes.success).toBe(true);
+
+      // Verify persistence via getFeedbacksAction
+      const postsAfterVote = await getFeedbacksAction();
+      const updatedPost = postsAfterVote.find((p: FeedbackPost) => p.id === feedbackId);
+
+      expect(updatedPost).toBeDefined();
+      expect(updatedPost?.score).toBe(1);
+      expect(updatedPost?.upvotesCount).toBe(1);
+      expect(updatedPost?.downvotesCount).toBe(0);
+      // userVote must reflect the voter's active vote (+1)
+      expect(updatedPost?.userVote).toBe(1);
+    });
+
+    it('correctly populates userVote for the viewer and distinguishes between different sessions', async () => {
+      // 1. Author creates feedback post
+      _setTestSession({
+        userId: 'author-multi-vote',
+        id: 'author-multi-vote',
+        email: 'author-multi@bennett.edu.in',
+        onboardingNeeded: false,
+        isOnboarded: true,
+      });
+
+      const createRes = await createFeedbackAction({
+        itemTitle: 'Campus Cycle',
+        content: 'Good cycle for hostels.',
+      });
+      const feedbackId = createRes.feedback!.id;
+
+      // 2. Student A upvotes (+1)
+      _setTestSession({
+        userId: 'student-a',
+        id: 'student-a',
+        email: 'studentA@bennett.edu.in',
+        onboardingNeeded: false,
+        isOnboarded: true,
+      });
+      await voteFeedbackAction(feedbackId, 1);
+
+      // Verify Student A sees userVote === 1
+      const studentAPosts = await getFeedbacksAction();
+      const studentAPost = studentAPosts.find((p: FeedbackPost) => p.id === feedbackId);
+      expect(studentAPost?.userVote).toBe(1);
+      expect(studentAPost?.score).toBe(1);
+
+      // 3. Student B views the feed without voting
+      _setTestSession({
+        userId: 'student-b',
+        id: 'student-b',
+        email: 'studentB@bennett.edu.in',
+        onboardingNeeded: false,
+        isOnboarded: true,
+      });
+
+      const studentBPosts = await getFeedbacksAction();
+      const studentBPost = studentBPosts.find((p: FeedbackPost) => p.id === feedbackId);
+      // Student B should see userVote === 0, but score === 1
+      expect(studentBPost?.userVote).toBe(0);
+      expect(studentBPost?.score).toBe(1);
+
+      // 4. Student B casts a downvote (-1)
+      await voteFeedbackAction(feedbackId, -1);
+
+      // Verify Student B now sees userVote === -1 and net score === 0 (1 up - 1 down)
+      const studentBPostsAfter = await getFeedbacksAction();
+      const studentBPostAfter = studentBPostsAfter.find((p: FeedbackPost) => p.id === feedbackId);
+      expect(studentBPostAfter?.userVote).toBe(-1);
+      expect(studentBPostAfter?.score).toBe(0);
+      expect(studentBPostAfter?.upvotesCount).toBe(1);
+      expect(studentBPostAfter?.downvotesCount).toBe(1);
+
+      // 5. Unauthenticated visitor views the feed
+      _setTestSession(null);
+      const unauthPosts = await getFeedbacksAction();
+      const unauthPost = unauthPosts.find((p: FeedbackPost) => p.id === feedbackId);
+      expect(unauthPost?.userVote).toBe(0);
+      expect(unauthPost?.score).toBe(0);
+    });
+
+    it('respects sorting orders ("top" vs "newest")', async () => {
+      const topPosts = await getFeedbacksAction('top');
+      for (let i = 0; i < topPosts.length - 1; i++) {
+        expect(topPosts[i].score).toBeGreaterThanOrEqual(topPosts[i + 1].score);
+      }
+
+      const newestPosts = await getFeedbacksAction('newest');
+      for (let i = 0; i < newestPosts.length - 1; i++) {
+        const timeA = new Date(newestPosts[i].createdAt).getTime();
+        const timeB = new Date(newestPosts[i + 1].createdAt).getTime();
+        expect(timeA).toBeGreaterThanOrEqual(timeB);
+      }
+    });
+  });
+
+  // --------------------------------------------------------------------------
+  // Suite 5: Component Rendering & UI Assertions (FeedbackCard)
+  // --------------------------------------------------------------------------
+  describeFeedbackComponents('5. FeedbackCard Component', () => {
     it('renders author details, item title, review content, and rating', () => {
       render(<FeedbackCard feedback={mockFeedbackPost} />);
 
@@ -540,9 +781,9 @@ describe('Feedbacks & Reddit Voting Engine Test Suite', () => {
   });
 
   // --------------------------------------------------------------------------
-  // Suite 5: Feed Component & Sorting (FeedbackFeed)
+  // Suite 6: Feed Component & Sorting (FeedbackFeed)
   // --------------------------------------------------------------------------
-  describeFeedback('5. FeedbackFeed Component', () => {
+  describeFeedbackComponents('6. FeedbackFeed Component', () => {
     it('renders feed header and post feedback CTA button', () => {
       render(<FeedbackFeed initialFeedbacks={[mockFeedbackPost]} />);
 
@@ -565,9 +806,9 @@ describe('Feedbacks & Reddit Voting Engine Test Suite', () => {
   });
 
   // --------------------------------------------------------------------------
-  // Suite 6: Modal Component Form & Submission (CreateFeedbackModal)
+  // Suite 7: Modal Component Form & Submission (CreateFeedbackModal)
   // --------------------------------------------------------------------------
-  describeFeedback('6. CreateFeedbackModal Component', () => {
+  describeFeedbackComponents('7. CreateFeedbackModal Component', () => {
     it('does not render modal content when isOpen is false', () => {
       render(<CreateFeedbackModal isOpen={false} onClose={jest.fn()} />);
 

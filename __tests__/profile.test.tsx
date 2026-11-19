@@ -229,27 +229,31 @@ describe('Profile Dashboard Component', () => {
 
   it('handles undefined and null initialListings defensively without crashing', () => {
     // Should not throw when initialListings is undefined
-    expect(() => {
-      render(
-        <ProfileDashboard
-          profile={mockProfile}
-          initialListings={undefined as any}
-        />
-      );
-    }).not.toThrow();
+    const { unmount: unmountUndefined } = render(
+      <ProfileDashboard
+        profile={mockProfile}
+        initialListings={undefined as any}
+      />
+    );
 
     expect(screen.getByText(/0 \/ 10 active/i)).toBeInTheDocument();
     expect(screen.getByText(/No active listings found/i)).toBeInTheDocument();
 
+    // Clean unmount between renders to prevent duplicate DOM nodes
+    unmountUndefined();
+
     // Should not throw when initialListings is null
-    expect(() => {
-      render(
-        <ProfileDashboard
-          profile={mockProfile}
-          initialListings={null as any}
-        />
-      );
-    }).not.toThrow();
+    const { unmount: unmountNull } = render(
+      <ProfileDashboard
+        profile={mockProfile}
+        initialListings={null as any}
+      />
+    );
+
+    expect(screen.getByText(/0 \/ 10 active/i)).toBeInTheDocument();
+    expect(screen.getByText(/No active listings found/i)).toBeInTheDocument();
+
+    unmountNull();
   });
 
   it('renders placeholder emoji when listing has empty or missing images', () => {
@@ -295,12 +299,24 @@ describe('Profile Dashboard Component', () => {
     expect(img).toHaveClass('object-cover');
   });
 
-  it('formats prices correctly for free and priced listings', () => {
+  it('formats prices correctly for free and priced listings including null and undefined price boundaries', () => {
     const freeListing: Listing = {
       ...mockListings[0],
       id: 'l-free',
-      title: 'Free Workshop Handout',
+      title: 'Workshop Handout',
       price: 0,
+    };
+    const nullPriceListing: Listing = {
+      ...mockListings[0],
+      id: 'l-null',
+      title: 'Campus Map',
+      price: null as any,
+    };
+    const undefinedPriceListing: Listing = {
+      ...mockListings[0],
+      id: 'l-undef',
+      title: 'Sticker Pack',
+      price: undefined as any,
     };
     const expensiveListing: Listing = {
       ...mockListings[0],
@@ -312,12 +328,16 @@ describe('Profile Dashboard Component', () => {
     render(
       <ProfileDashboard
         profile={mockProfile}
-        initialListings={[freeListing, expensiveListing]}
+        initialListings={[freeListing, nullPriceListing, undefinedPriceListing, expensiveListing]}
       />
     );
 
     expect(screen.getByText('Free')).toBeInTheDocument();
     expect(screen.getByText('₹4,500')).toBeInTheDocument();
+    expect(screen.queryByText(/NaN/i)).not.toBeInTheDocument();
+    // Verify safe price formatting for null and undefined: either 'Free' or safe '₹0', never throwing or NaN
+    const safePriceElements = screen.getAllByText(/^(Free|₹0)$/);
+    expect(safePriceElements.length).toBe(3);
   });
 
   it('handles permanent listing deletion in Delisted tab with confirm dialog', async () => {
