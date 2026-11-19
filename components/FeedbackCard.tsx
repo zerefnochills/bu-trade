@@ -1,11 +1,22 @@
 'use client';
 
 // ============================================================================
-// BU Trade — FeedbackCard Component with Reddit-Style Voting
+// BU Trade — Reddit-Style FeedbackCard Component
+// Authenticated Reddit-like review post with upvotes, photo gallery & flairs
 // ============================================================================
 
 import React, { useState } from 'react';
-import { ArrowBigUp, ArrowBigDown, Star, CheckCircle, Clock } from 'lucide-react';
+import {
+  ArrowBigUp,
+  ArrowBigDown,
+  Star,
+  CheckCircle,
+  MessageSquare,
+  Share2,
+  Flag,
+  Clock,
+  Sparkles,
+} from 'lucide-react';
 import { FeedbackPost } from '@/lib/db/types';
 
 export interface FeedbackCardProps {
@@ -20,6 +31,7 @@ export default function FeedbackCard({
   currentUser,
 }: FeedbackCardProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const handleVote = (voteType: 1 | -1) => {
     if (onVote) {
@@ -27,10 +39,18 @@ export default function FeedbackCard({
     }
   };
 
+  const handleShare = () => {
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(window.location.origin + `/feed`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
   const isUpvoted = feedback.userVote === 1;
   const isDownvoted = feedback.userVote === -1;
 
-  // Format creation timestamp
+  // Format creation timestamp into relative or date string
   const timeString = (() => {
     try {
       const date = new Date(feedback.createdAt);
@@ -39,31 +59,27 @@ export default function FeedbackCard({
         day: 'numeric',
       });
     } catch {
-      return '';
+      return 'Recently';
     }
   })();
 
-  const authorInitials = feedback.authorName
-    ? feedback.authorName
-        .split(' ')
-        .map((n) => n[0])
-        .join('')
-        .toUpperCase()
-        .slice(0, 2)
-    : 'BU';
+  // Reddit-style username format: u/FirstnameLastname
+  const redditUsername = feedback.authorName
+    ? `u/${feedback.authorName.replace(/\s+/g, '')}`
+    : 'u/BennettStudent';
 
   return (
-    <article className="bg-white border border-[#e1e6f0] rounded-2xl shadow-xs hover:shadow-md transition-shadow p-4 sm:p-5 flex gap-3 sm:gap-4">
-      {/* Reddit-Style Voting Column */}
-      <div className="flex flex-col items-center justify-start pt-0.5 select-none min-w-[36px]">
+    <article className="bg-white border border-[#e1e6f0] hover:border-[#cbd5e1] rounded-2xl shadow-xs transition-all overflow-hidden flex flex-row">
+      {/* Reddit-Style Left Voting Pillar */}
+      <div className="bg-[#f8fafc] border-r border-[#f1f5f9] flex flex-col items-center justify-start py-3 px-2 sm:px-2.5 select-none min-w-[42px] sm:min-w-[48px]">
         <button
           type="button"
           onClick={() => handleVote(1)}
           aria-label="Upvote"
-          className={`p-1.5 rounded-lg transition-colors flex items-center justify-center ${
+          className={`p-1 rounded-md transition-colors flex items-center justify-center ${
             isUpvoted
-              ? 'text-orange-600 bg-orange-50 font-bold active'
-              : 'text-[#5a6580] hover:text-orange-600 hover:bg-orange-50/60'
+              ? 'text-orange-600 bg-orange-100/70 font-bold active'
+              : 'text-[#64748b] hover:text-orange-600 hover:bg-orange-50'
           }`}
           title="Upvote"
         >
@@ -75,12 +91,12 @@ export default function FeedbackCard({
         </button>
 
         <span
-          className={`text-[13px] sm:text-[14px] font-bold py-1 ${
+          className={`text-xs sm:text-[13px] font-bold py-1.5 tabular-nums ${
             isUpvoted
               ? 'text-orange-600 font-extrabold'
               : isDownvoted
               ? 'text-blue-600 font-extrabold'
-              : 'text-[#14203b]'
+              : 'text-[#1e293b]'
           }`}
         >
           {feedback.score}
@@ -90,10 +106,10 @@ export default function FeedbackCard({
           type="button"
           onClick={() => handleVote(-1)}
           aria-label="Downvote"
-          className={`p-1.5 rounded-lg transition-colors flex items-center justify-center ${
+          className={`p-1 rounded-md transition-colors flex items-center justify-center ${
             isDownvoted
-              ? 'text-blue-600 bg-blue-50 font-bold active'
-              : 'text-[#5a6580] hover:text-blue-600 hover:bg-blue-50/60'
+              ? 'text-blue-600 bg-blue-100/70 font-bold active'
+              : 'text-[#64748b] hover:text-blue-600 hover:bg-blue-50'
           }`}
           title="Downvote"
         >
@@ -105,84 +121,92 @@ export default function FeedbackCard({
         </button>
       </div>
 
-      {/* Main Content Area */}
-      <div className="flex-1 min-w-0 space-y-2.5">
-        {/* Author Header */}
-        <div className="flex items-center justify-between flex-wrap gap-2 text-[12.5px] sm:text-[13px]">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-[#062a6e] text-white flex items-center justify-center font-bold text-[11px] shadow-xs">
-              {authorInitials}
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5 font-semibold text-[#14203b]">
-                <span>{feedback.authorName || 'Bennett Student'}</span>
-                <span className="inline-flex items-center text-[#062a6e]" title="Verified Bennett Student">
-                  <CheckCircle className="w-3.5 h-3.5 fill-[#062a6e] text-white" />
-                </span>
-              </div>
-              <p className="text-[11.5px] text-[#5a6580]">
-                <span>{feedback.authorCourse || 'B.Tech CSE'}</span>
-                <span className="mx-1">·</span>
-                <span>Y{feedback.authorYear || 2}</span>
-              </p>
-            </div>
+      {/* Main Reddit Post Content */}
+      <div className="flex-1 min-w-0 p-3.5 sm:p-5 space-y-2.5">
+        {/* Reddit Post Header / Subreddit & User Meta */}
+        <div className="flex items-center justify-between flex-wrap gap-2 text-xs text-[#64748b]">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="font-bold text-[#062a6e] hover:underline cursor-pointer">
+              bu/feed
+            </span>
+            <span className="opacity-40">•</span>
+            <span className="font-semibold text-[#1e293b]">{feedback.authorName || 'Bennett Student'}</span>
+            <span className="text-[11px] text-[#64748b]">({redditUsername})</span>
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#f1f5f9] text-[11px] font-medium text-[#062a6e]">
+              <CheckCircle className="w-3 h-3 text-[#062a6e] fill-[#062a6e]/20" />
+              <span>{feedback.authorCourse || 'B.Tech CSE'} {feedback.authorYear ? `Y${feedback.authorYear}` : ''}</span>
+            </span>
           </div>
 
-          {timeString && (
-            <div className="flex items-center gap-1 text-[11.5px] text-[#5a6580]">
-              <Clock className="w-3.5 h-3.5" />
-              <span>{timeString}</span>
+          <div className="flex items-center gap-1 text-[11.5px] text-[#64748b]">
+            <Clock className="w-3 h-3 opacity-70" />
+            <span>{timeString}</span>
+          </div>
+        </div>
+
+        {/* Item Title & Reddit Flair */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <h3 className="text-base sm:text-[17px] font-bold text-[#0f172a] leading-snug">
+            {feedback.itemTitle}
+          </h3>
+
+          {/* Star Rating Flair */}
+          {typeof feedback.rating === 'number' && feedback.rating > 0 && (
+            <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-bold">
+              <Star className="w-3 h-3 fill-amber-400 text-amber-500" />
+              <span>{feedback.rating}.0 Verified</span>
             </div>
           )}
         </div>
 
-        {/* Rating Stars (1 to 5) */}
-        {typeof feedback.rating === 'number' && feedback.rating > 0 && (
-          <div className="flex items-center gap-1 pt-0.5">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <Star
-                key={star}
-                className={`w-4 h-4 ${
-                  star <= (feedback.rating || 0)
-                    ? 'fill-amber-400 text-amber-400'
-                    : 'text-[#e1e6f0]'
-                }`}
-              />
-            ))}
-            <span className="text-[12px] font-semibold text-[#5a6580] ml-1">
-              {feedback.rating}/5
-            </span>
-          </div>
-        )}
-
-        {/* Item Title */}
-        <h3 className="text-[15px] sm:text-[16px] font-bold text-[#062a6e] leading-snug">
-          {feedback.itemTitle}
-        </h3>
-
-        {/* Review Body */}
-        <p className="text-[13.5px] sm:text-[14px] text-[#14203b] leading-relaxed whitespace-pre-wrap">
+        {/* Review Text Body */}
+        <p className="text-[13.5px] sm:text-[14px] text-[#334155] leading-relaxed whitespace-pre-wrap">
           {feedback.content}
         </p>
 
-        {/* Attached Photos Gallery */}
+        {/* Attached Photos Gallery (Reddit Media Box) */}
         {feedback.images && feedback.images.length > 0 && (
-          <div className="pt-2 flex flex-wrap gap-2.5">
-            {feedback.images.map((imgUrl, idx) => (
-              <div
-                key={idx}
-                onClick={() => setSelectedImage(imgUrl)}
-                className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl border border-[#e1e6f0] overflow-hidden bg-[#f3f5fa] cursor-pointer hover:opacity-90 hover:ring-2 hover:ring-[#062a6e] transition-all relative"
-              >
-                <img
-                  src={imgUrl}
-                  alt={feedback.itemTitle}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            ))}
+          <div className="pt-1.5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-w-xl">
+              {feedback.images.map((imgUrl, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => setSelectedImage(imgUrl)}
+                  className="aspect-square rounded-xl border border-[#e2e8f0] overflow-hidden bg-[#f8fafc] cursor-pointer hover:opacity-90 hover:ring-2 hover:ring-[#062a6e] transition-all relative group"
+                >
+                  <img
+                    src={imgUrl}
+                    alt={feedback.itemTitle}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                </div>
+              ))}
+            </div>
           </div>
         )}
+
+        {/* Reddit Bottom Action Bar */}
+        <div className="pt-2 flex items-center gap-4 text-xs font-semibold text-[#64748b] border-t border-[#f1f5f9]">
+          <div className="flex items-center gap-1.5 hover:text-[#062a6e] cursor-pointer py-1">
+            <MessageSquare className="w-3.5 h-3.5" />
+            <span>Campus Review</span>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleShare}
+            className="flex items-center gap-1.5 hover:text-[#062a6e] transition-colors py-1"
+          >
+            <Share2 className="w-3.5 h-3.5" />
+            <span>{copied ? 'Link Copied!' : 'Share'}</span>
+          </button>
+
+          <div className="flex items-center gap-1.5 hover:text-[#c8102e] cursor-pointer py-1">
+            <Flag className="w-3.5 h-3.5" />
+            <span>Report</span>
+          </div>
+        </div>
       </div>
 
       {/* Lightbox Modal */}
@@ -191,9 +215,9 @@ export default function FeedbackCard({
           role="dialog"
           aria-modal="true"
           onClick={() => setSelectedImage(null)}
-          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-xs"
         >
-          <div className="relative max-w-2xl max-h-[85vh] overflow-hidden rounded-2xl bg-white p-2">
+          <div className="relative max-w-3xl max-h-[85vh] overflow-hidden rounded-2xl bg-white p-2">
             <img
               src={selectedImage}
               alt={feedback.itemTitle}

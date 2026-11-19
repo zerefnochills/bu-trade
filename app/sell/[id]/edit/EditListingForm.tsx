@@ -230,8 +230,30 @@ export default function EditListingForm({ listing, activeCount }: EditListingFor
 
         <div>
           <label className="block text-[13.5px] font-semibold text-[#14203b] mb-1.5">
-            Reason for Selling <span className="text-[#c8102e]">*</span>
+            Reason for Selling <span className="text-[#c8102e]">* (Required)</span>
           </label>
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {[
+              'Semester Completed',
+              'Moving Out / Hostel Clearance',
+              'Upgraded to New Model',
+              'Course / Lab Finished',
+              'No Longer Needed',
+            ].map((preset) => (
+              <button
+                key={preset}
+                type="button"
+                onClick={() => setReason(preset)}
+                className={`text-xs px-2.5 py-1 rounded-full border transition-all ${
+                  reason === preset
+                    ? 'bg-[#062a6e] text-white border-[#062a6e] font-semibold'
+                    : 'bg-white text-[#334155] border-[#cbd5e1] hover:bg-[#f1f5f9]'
+                }`}
+              >
+                {preset}
+              </button>
+            ))}
+          </div>
           <input
             type="text"
             required

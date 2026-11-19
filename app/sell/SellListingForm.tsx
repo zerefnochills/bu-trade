@@ -256,35 +256,62 @@ export default function SellListingForm({ user, activeCount }: SellListingFormPr
         </div>
       </div>
 
-      {/* Age & Reason */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-        <div>
-          <label className="block text-xs font-semibold text-[#14203b] mb-1">
-            Age / Condition <span className="text-[#c8102e]">*</span>
+      {/* Age / Condition */}
+      <div>
+        <label className="block text-xs font-semibold text-[#14203b] mb-1">
+          Age / Condition <span className="text-[#c8102e]">*</span>
+        </label>
+        <input
+          type="text"
+          required
+          value={age}
+          onChange={(e) => setAge(e.target.value)}
+          placeholder="e.g. 6 months / 1 sem / Like new"
+          className="w-full px-3.5 py-2 rounded-xl border border-[#e1e6f0] bg-white text-sm text-[#14203b] placeholder-[#5a6580]/50 focus:outline-none focus:border-[#062a6e]"
+        />
+      </div>
+
+      {/* Reason for Selling — Mandatory Requirement */}
+      <div className="p-3.5 rounded-xl bg-[#f8fafc] border border-[#e1e6f0] space-y-2">
+        <div className="flex items-center justify-between flex-wrap gap-1">
+          <label className="block text-xs font-bold text-[#062a6e]">
+            Reason for Selling <span className="text-[#c8102e]">* (Required)</span>
           </label>
-          <input
-            type="text"
-            required
-            value={age}
-            onChange={(e) => setAge(e.target.value)}
-            placeholder="e.g. 6 months / 1 sem / Like new"
-            className="w-full px-3.5 py-2 rounded-xl border border-[#e1e6f0] bg-white text-sm text-[#14203b] placeholder-[#5a6580]/50 focus:outline-none focus:border-[#062a6e]"
-          />
+          <span className="text-[11px] text-[#5a6580]">Helps campus buyers verify authenticity</span>
         </div>
 
-        <div>
-          <label className="block text-xs font-semibold text-[#14203b] mb-1">
-            Reason for Selling <span className="text-[#c8102e]">*</span>
-          </label>
-          <input
-            type="text"
-            required
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            placeholder="e.g. Semester over / Moving hostel"
-            className="w-full px-3.5 py-2 rounded-xl border border-[#e1e6f0] bg-white text-sm text-[#14203b] placeholder-[#5a6580]/50 focus:outline-none focus:border-[#062a6e]"
-          />
+        {/* Quick Select Reason Pills */}
+        <div className="flex flex-wrap gap-1.5 pt-0.5">
+          {[
+            'Semester Completed',
+            'Moving Out / Hostel Clearance',
+            'Upgraded to New Model',
+            'Course / Lab Finished',
+            'No Longer Needed',
+          ].map((preset) => (
+            <button
+              key={preset}
+              type="button"
+              onClick={() => setReason(preset)}
+              className={`text-xs px-2.5 py-1 rounded-full border transition-all ${
+                reason === preset
+                  ? 'bg-[#062a6e] text-white border-[#062a6e] font-semibold shadow-xs'
+                  : 'bg-white text-[#334155] border-[#cbd5e1] hover:border-[#062a6e] hover:bg-[#f1f5f9]'
+              }`}
+            >
+              {preset}
+            </button>
+          ))}
         </div>
+
+        <input
+          type="text"
+          required
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          placeholder="Select a reason above or type your specific reason for selling..."
+          className="w-full px-3.5 py-2 rounded-xl border border-[#e1e6f0] bg-white text-sm text-[#14203b] placeholder-[#5a6580]/50 focus:outline-none focus:border-[#062a6e]"
+        />
       </div>
 
       {/* Description */}
