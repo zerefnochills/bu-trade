@@ -39,3 +39,4 @@ next-env.d.ts
 
 # local mock db state
 .mock_db_state.json
+.mock_db_state.test.json

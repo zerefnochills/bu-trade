@@ -3,6 +3,8 @@
 // Tests all 12 page routes and all server actions
 // ============================================================================
 
+process.env.BU_TRADE_TEST = 'true';
+
 import { getDatabaseService } from '../lib/db';
 import { _setTestSession, createSession, destroySession } from '../lib/auth/session';
 import {

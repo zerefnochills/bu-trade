@@ -476,6 +476,9 @@ export class MockDatabaseService implements IDatabaseService {
     if (this.isClient()) return null;
     try {
       const path = require('path');
+      if (process.env.NODE_ENV === 'test' || process.env.BU_TRADE_TEST === 'true') {
+        return path.join(process.cwd(), '.mock_db_state.test.json');
+      }
       return path.join(process.cwd(), '.mock_db_state.json');
     } catch {
       return null;
@@ -573,52 +576,61 @@ export class MockDatabaseService implements IDatabaseService {
 
     const storedProfiles = this.loadFromStorage<Profile[] | null>(STORAGE_KEYS.PROFILES, null);
     const storedListings = this.loadFromStorage<Listing[] | null>(STORAGE_KEYS.LISTINGS, null);
-
-    if (storedProfiles && storedProfiles.length > 0) {
-      this.profiles = storedProfiles;
-    } else {
-      // Start with empty profiles — seed profiles available only via forceReset (tests)
-      this.profiles = [];
-      this.saveToStorage(STORAGE_KEYS.PROFILES, this.profiles);
-    }
-
-    if (storedListings && storedListings.length > 0) {
-      this.listings = storedListings;
-    } else {
-      // Start with an empty feed — no mock/seed listings on first run
-      this.listings = [];
-      this.saveToStorage(STORAGE_KEYS.LISTINGS, this.listings);
-    }
-
-    this.enquiries = this.loadFromStorage<Enquiry[]>(STORAGE_KEYS.ENQUIRIES, []);
-    this.reports = this.loadFromStorage<Report[]>(STORAGE_KEYS.REPORTS, []);
-    this.feedback = this.loadFromStorage<Feedback[]>(STORAGE_KEYS.FEEDBACK, []);
-
     const storedFeedbackPosts = this.loadFromStorage<FeedbackPost[] | null>(
       STORAGE_KEYS.FEEDBACK_POSTS,
       null
     );
-    if (storedFeedbackPosts && storedFeedbackPosts.length > 0) {
-      this.feedbackPosts = storedFeedbackPosts;
-    } else {
-      // Start with empty feedback posts
-      this.feedbackPosts = [];
-      this.saveToStorage(STORAGE_KEYS.FEEDBACK_POSTS, this.feedbackPosts);
-    }
-
-    this.feedbackVotes = this.loadFromStorage<FeedbackVote[]>(STORAGE_KEYS.FEEDBACK_VOTES, []);
-
     const storedTradeBorrow = this.loadFromStorage<TradeBorrowRequest[] | null>(
       STORAGE_KEYS.TRADE_BORROW,
       null
     );
-    if (storedTradeBorrow && storedTradeBorrow.length > 0) {
-      this.tradeBorrowRequests = storedTradeBorrow;
-    } else {
-      // Start with empty trade/borrow requests
-      this.tradeBorrowRequests = [];
+
+    const isTestEnv = process.env.NODE_ENV === 'test' || process.env.BU_TRADE_TEST === 'true';
+
+    if (isTestEnv) {
+      // Test environment: populate test seeds if not already stored in isolated test storage
+      this.profiles = storedProfiles || [...SEED_PROFILES];
+      this.listings = storedListings || [...SEED_LISTINGS];
+      this.enquiries = this.loadFromStorage<Enquiry[]>(STORAGE_KEYS.ENQUIRIES, []);
+      this.reports = this.loadFromStorage<Report[]>(STORAGE_KEYS.REPORTS, []);
+      this.feedback = this.loadFromStorage<Feedback[]>(STORAGE_KEYS.FEEDBACK, []);
+      this.feedbackPosts =
+        storedFeedbackPosts ||
+        SEED_FEEDBACK_POSTS.map((p) => ({ ...p, images: [...p.images] }));
+      this.feedbackVotes = this.loadFromStorage<FeedbackVote[]>(STORAGE_KEYS.FEEDBACK_VOTES, []);
+      this.tradeBorrowRequests =
+        storedTradeBorrow ||
+        SEED_TRADE_BORROW_REQUESTS.map((r) => ({
+          ...r,
+          images: [...r.images],
+        }));
+
+      this.saveToStorage(STORAGE_KEYS.PROFILES, this.profiles);
+      this.saveToStorage(STORAGE_KEYS.LISTINGS, this.listings);
+      this.saveToStorage(STORAGE_KEYS.FEEDBACK_POSTS, this.feedbackPosts);
       this.saveToStorage(STORAGE_KEYS.TRADE_BORROW, this.tradeBorrowRequests);
+      this.isLoaded = true;
+      return;
     }
+
+    // Live website runtime: strictly zero mock data!
+    this.profiles = (storedProfiles || []).filter((p) => !p.id.startsWith('seed-'));
+    this.listings = (storedListings || []).filter((l) => !l.id.startsWith('seed-'));
+    this.enquiries = this.loadFromStorage<Enquiry[]>(STORAGE_KEYS.ENQUIRIES, []).filter(
+      (e) => !e.id.startsWith('seed-')
+    );
+    this.reports = this.loadFromStorage<Report[]>(STORAGE_KEYS.REPORTS, []).filter(
+      (r) => !r.id.startsWith('seed-')
+    );
+    this.feedback = this.loadFromStorage<Feedback[]>(STORAGE_KEYS.FEEDBACK, []);
+    this.feedbackPosts = (storedFeedbackPosts || []).filter((f) => !f.id.startsWith('seed-'));
+    this.feedbackVotes = this.loadFromStorage<FeedbackVote[]>(STORAGE_KEYS.FEEDBACK_VOTES, []);
+    this.tradeBorrowRequests = (storedTradeBorrow || []).filter((r) => !r.id.startsWith('seed-'));
+
+    this.saveToStorage(STORAGE_KEYS.PROFILES, this.profiles);
+    this.saveToStorage(STORAGE_KEYS.LISTINGS, this.listings);
+    this.saveToStorage(STORAGE_KEYS.FEEDBACK_POSTS, this.feedbackPosts);
+    this.saveToStorage(STORAGE_KEYS.TRADE_BORROW, this.tradeBorrowRequests);
 
     this.isLoaded = true;
   }
