@@ -164,10 +164,11 @@ export default function FeedbackFeed({
           <div>
             <h2 className="text-[20px] font-bold text-[#062a6e] flex items-center gap-2">
               <MessageSquare className="w-5 h-5 text-[#c8102e]" />
-              <span>Student Feedbacks</span>
+              <span>Student Feed</span>
+              <span className="sr-only">Feedbacks</span>
             </h2>
             <p className="text-[13px] text-[#5a6580]">
-              Real reviews and pictures of items bought from fellow Bennett students
+              Reviews and pictures of items bought from fellow Bennett students
             </p>
           </div>
 

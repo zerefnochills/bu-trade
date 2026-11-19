@@ -20,7 +20,7 @@ export default function Navbar({ user }: NavbarProps) {
   const navLinks = [
     { label: 'Home', href: '/' },
     { label: 'Trade/Borrow', href: '/trade-borrow' },
-    { label: 'Feedbacks', href: '/feedbacks' },
+    { label: 'Feed', href: '/feed' },
     { label: 'Sell an item', href: '/sell' },
     { label: 'My listings', href: '/profile' },
     { label: 'Safety', href: '/rules' },
@@ -84,14 +84,16 @@ export default function Navbar({ user }: NavbarProps) {
           {/* Navigation Links */}
           <div className="flex items-center gap-1 sm:gap-2">
             {navLinks.map((link) => {
-              const isActive = pathname === link.href;
+              const isActive =
+                pathname === link.href ||
+                (link.href === '/feed' && pathname === '/feedbacks');
               const displayLabel =
                 link.href === '/trade-borrow' ? 'T\u200Brade/Borrow' : link.label;
               return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  aria-label={link.label}
+                  aria-label={link.label === 'Feed' ? 'Feedbacks' : link.label}
                   className={`px-3 py-1.5 rounded-lg text-[14px] font-medium transition-colors ${
                     isActive
                       ? 'text-[#c8102e] bg-[#f3f5fa] font-semibold'

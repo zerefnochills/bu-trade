@@ -33,10 +33,10 @@ describe('Navbar Component', () => {
     expect(screen.getByText(/My listings/i)).toBeInTheDocument();
     expect(screen.getAllByText(/Safety/i).length).toBeGreaterThanOrEqual(1);
 
-    // Dynamic verification for Feedbacks and Trade/Borrow when updated
-    const feedbacksLink = screen.queryByRole('link', { name: /Feedbacks/i });
+    // Dynamic verification for Feedbacks / Feed and Trade/Borrow when updated
+    const feedbacksLink = screen.queryByRole('link', { name: /Feed(backs)?/i });
     if (feedbacksLink) {
-      expect(feedbacksLink).toHaveAttribute('href', '/feedbacks');
+      expect(feedbacksLink.getAttribute('href')).toMatch(/^\/feed(backs)?$/);
     }
 
     const tradeBorrowLink = screen.queryByRole('link', { name: /Trade\/Borrow/i });
@@ -52,9 +52,9 @@ describe('Navbar Component', () => {
     expect(screen.getByRole('link', { name: /Sell an item/i })).toHaveAttribute('href', '/sell');
     expect(screen.getByRole('link', { name: /My listings/i })).toHaveAttribute('href', '/profile');
 
-    const feedbacksLink = screen.queryByRole('link', { name: /Feedbacks/i });
+    const feedbacksLink = screen.queryByRole('link', { name: /Feed(backs)?/i });
     if (feedbacksLink) {
-      expect(feedbacksLink).toHaveAttribute('href', '/feedbacks');
+      expect(feedbacksLink.getAttribute('href')).toMatch(/^\/feed(backs)?$/);
     }
 
     const tradeBorrowLink = screen.queryByRole('link', { name: /Trade\/Borrow/i });
@@ -69,9 +69,9 @@ describe('Navbar Component', () => {
     expect(screen.getByRole('link', { name: /My listings/i })).toHaveClass('text-[#c8102e]', 'bg-[#f3f5fa]');
     unmount();
 
-    currentPathname = '/feedbacks';
+    currentPathname = '/feed';
     const { unmount: unmount2 } = render(<Navbar />);
-    const feedbacksLink = screen.queryByRole('link', { name: /Feedbacks/i });
+    const feedbacksLink = screen.queryByRole('link', { name: /Feed(backs)?/i });
     if (feedbacksLink) {
       expect(feedbacksLink).toHaveClass('text-[#c8102e]', 'bg-[#f3f5fa]');
     }

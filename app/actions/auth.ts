@@ -6,7 +6,8 @@
 
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
-import { getDatabaseService } from '@/lib/db';
+import { getDatabaseService, isMockMode } from '@/lib/db';
+import { createClient } from '@supabase/supabase-js';
 import {
   isBennettEmail,
   normalizeEmail,
@@ -69,6 +70,39 @@ export async function requestOtpAction(
     }
 
     const normalized = normalizeEmail(email);
+
+    // If Supabase credentials are configured, send real OTP via Supabase Auth
+    if (!isMockMode()) {
+      try {
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+        const supabaseKey =
+          process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        const { error } = await supabase.auth.signInWithOtp({
+          email: normalized,
+          options: {
+            shouldCreateUser: true,
+          },
+        });
+
+        if (error) {
+          return { success: false, error: error.message };
+        }
+
+        return {
+          success: true,
+          message: 'Verification code sent to your Bennett email inbox.',
+          data: { email: normalized },
+        };
+      } catch (sbErr: any) {
+        return {
+          success: false,
+          error: sbErr?.message || 'Failed to send OTP via Supabase Auth.',
+        };
+      }
+    }
+
     const otpCode = '123456'; // Standard campus mock OTP for development & testing
 
     // Store pending OTP in short-lived cookie (10 minutes)
@@ -136,6 +170,58 @@ export async function verifyOtpAction(
     }
 
     const normalized = normalizeEmail(email);
+
+    // If Supabase credentials are configured, verify with real Supabase Auth
+    if (!isMockMode()) {
+      try {
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+        const supabaseKey =
+          process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        const { data: authData, error: authError } = await supabase.auth.verifyOtp({
+          email: normalized,
+          token: code,
+          type: 'email',
+        });
+
+        if (authError || !authData.user) {
+          return {
+            success: false,
+            error: authError?.message || 'Invalid or expired verification code.',
+          };
+        }
+
+        const userId = authData.user.id;
+        const db = getDatabaseService();
+        const profile = await db.getProfile(userId);
+        const onboardingNeeded = !profile;
+
+        const session = await createSession({
+          userId,
+          email: normalized,
+          onboardingNeeded,
+        });
+
+        safeRevalidate('/');
+        safeRevalidate('/sell');
+        safeRevalidate('/profile');
+
+        return {
+          success: true,
+          data: {
+            session,
+            onboardingNeeded,
+            redirectTo: onboardingNeeded ? '/onboarding' : '/',
+          },
+        };
+      } catch (sbErr: any) {
+        return {
+          success: false,
+          error: sbErr?.message || 'Verification failed via Supabase Auth.',
+        };
+      }
+    }
 
     // Retrieve pending OTP from cookie
     let storedOtp = '123456';

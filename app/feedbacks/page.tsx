@@ -7,7 +7,7 @@ import FeedbackFeed from '@/components/FeedbackFeed';
 import { ShieldCheck } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Feedbacks & Reviews | BU Trade',
+  title: 'Student Feed & Reviews | BU Trade',
   description: 'Verified student reviews and photos of campus marketplace items at Bennett University.',
 };
 
@@ -38,13 +38,13 @@ export default async function FeedbacksPage() {
           <div className="relative z-10 max-w-xl space-y-1.5">
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/10 text-[#dbe4ff] text-xs font-medium">
               <ShieldCheck className="w-3.5 h-3.5 text-[#ff9aa9]" />
-              <span>Community Reviews</span>
+              <span>Campus Community</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
-              Student Feedbacks
+              Student Feed
             </h1>
             <p className="text-xs sm:text-sm text-[#dbe4ff]">
-              Verified peer reviews and item photos from Bennett campus transactions.
+              Verified peer reviews, bought item photos, and campus trade experiences.
             </p>
           </div>
         </div>

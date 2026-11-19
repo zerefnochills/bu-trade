@@ -60,8 +60,8 @@ export function parseSession(cookieValue: string): UserSession | null {
       parsed.onboardingNeeded !== undefined
         ? Boolean(parsed.onboardingNeeded)
         : parsed.isOnboarded !== undefined
-        ? !parsed.isOnboarded
-        : true;
+          ? !parsed.isOnboarded
+          : true;
 
     return {
       userId,
@@ -153,8 +153,8 @@ export async function setSessionCookie(user: {
     user.onboardingNeeded !== undefined
       ? user.onboardingNeeded
       : user.isOnboarded !== undefined
-      ? !user.isOnboarded
-      : true;
+        ? !user.isOnboarded
+        : true;
 
   await createSession({
     userId,
@@ -180,14 +180,14 @@ export async function updateSession(updates: Partial<UserSession>): Promise<User
       updates.onboardingNeeded !== undefined
         ? updates.onboardingNeeded
         : updates.isOnboarded !== undefined
-        ? !updates.isOnboarded
-        : current.onboardingNeeded,
+          ? !updates.isOnboarded
+          : current.onboardingNeeded,
     isOnboarded:
       updates.isOnboarded !== undefined
         ? updates.isOnboarded
         : updates.onboardingNeeded !== undefined
-        ? !updates.onboardingNeeded
-        : current.isOnboarded,
+          ? !updates.onboardingNeeded
+          : current.isOnboarded,
   };
 
   testSessionStore = updated;
