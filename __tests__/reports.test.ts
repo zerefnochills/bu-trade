@@ -1,6 +1,7 @@
 import { MockDatabaseService } from '@/lib/db/mock';
 import { REPORT_VIOLATION_CATEGORIES } from '@/lib/reports/types';
 import { submitReportAction } from '@/app/actions/reports';
+import { _setTestSession } from '@/lib/auth/session';
 
 describe('Moderation & Reports Database Service', () => {
   let db: MockDatabaseService;
@@ -25,6 +26,17 @@ describe('Moderation & Reports Database Service', () => {
     expect(report.details).toBe('Seller is listing unapproved electronic heaters.');
     expect(report.status).toBe('pending');
     expect(new Date(report.createdAt).getTime()).not.toBeNaN();
+  });
+
+  it('throws an error if attempting to create report on non-existent listing', async () => {
+    await expect(
+      db.createReport({
+        listingId: 'nonexistent-listing-9999',
+        reporterId: 'seed-user-2',
+        reason: 'Prohibited item',
+        details: 'Fake listing report attempt',
+      })
+    ).rejects.toThrow('Listing not found: nonexistent-listing-9999');
   });
 
   it('retrieves reports in chronological descending order', async () => {
@@ -62,7 +74,17 @@ describe('Moderation & Reports Database Service', () => {
 });
 
 describe('Report Server Action', () => {
+  beforeEach(() => {
+    _setTestSession(null);
+  });
+
+  afterEach(() => {
+    _setTestSession(null);
+  });
+
   it('rejects report submission if reporter is not authenticated', async () => {
+    _setTestSession(null);
+
     const result = await submitReportAction({
       listingId: 'seed-listing-1',
       reason: 'Prohibited item',
@@ -74,27 +96,115 @@ describe('Report Server Action', () => {
     expect(result.error).toMatch(/Authentication required/i);
   });
 
+  it('rejects report submission even if client supplies reporterId when unauthenticated (spoofing prevention)', async () => {
+    _setTestSession(null);
+
+    const result = await submitReportAction({
+      listingId: 'seed-listing-1',
+      reason: 'Prohibited item',
+      details: 'Attempted spoofed report',
+      reporterId: 'attacker-spoofed-user-id',
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toMatch(/Authentication required/i);
+  });
+
+  it('strictly overrides client reporterId with authenticated session userId', async () => {
+    _setTestSession({
+      userId: 'seed-user-2',
+      id: 'seed-user-2',
+      email: 'rohan.gupta@bennett.edu.in',
+      onboardingNeeded: false,
+      isOnboarded: true,
+    });
+
+    const result = await submitReportAction({
+      listingId: 'seed-listing-1',
+      reason: 'Safety concern',
+      details: 'Meetup concern',
+      reporterId: 'malicious-spoofed-identity',
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.report).toBeDefined();
+    expect(result.report?.reporterId).toBe('seed-user-2');
+    expect(result.report?.reporterId).not.toBe('malicious-spoofed-identity');
+  });
+
+  it('rejects report submission on non-existent listing with "Listing not found."', async () => {
+    _setTestSession({
+      userId: 'seed-user-2',
+      id: 'seed-user-2',
+      email: 'rohan.gupta@bennett.edu.in',
+      onboardingNeeded: false,
+      isOnboarded: true,
+    });
+
+    const result = await submitReportAction({
+      listingId: 'nonexistent-listing-9999',
+      reason: 'Prohibited item',
+      details: 'Dangling report attempt',
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe('Listing not found.');
+  });
+
+  it('rejects report submission if listing ID is missing or empty', async () => {
+    _setTestSession({
+      userId: 'seed-user-2',
+      id: 'seed-user-2',
+      email: 'rohan.gupta@bennett.edu.in',
+      onboardingNeeded: false,
+      isOnboarded: true,
+    });
+
+    const result = await submitReportAction({
+      listingId: '   ',
+      reason: 'Prohibited item',
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe('Listing ID is required.');
+  });
+
   it('rejects invalid violation categories', async () => {
+    _setTestSession({
+      userId: 'seed-user-2',
+      id: 'seed-user-2',
+      email: 'rohan.gupta@bennett.edu.in',
+      onboardingNeeded: false,
+      isOnboarded: true,
+    });
+
     const result = await submitReportAction({
       listingId: 'seed-listing-1',
       reason: 'Invalid category not in list',
-      reporterId: 'seed-user-2',
     });
 
     expect(result.success).toBe(false);
     expect(result.error).toMatch(/Invalid violation category/i);
   });
 
-  it('successfully creates report with valid parameters', async () => {
+  it('successfully creates report with valid parameters for authenticated user', async () => {
+    _setTestSession({
+      userId: 'seed-user-2',
+      id: 'seed-user-2',
+      email: 'rohan.gupta@bennett.edu.in',
+      onboardingNeeded: false,
+      isOnboarded: true,
+    });
+
     const result = await submitReportAction({
       listingId: 'seed-listing-1',
       reason: 'Safety concern',
       details: 'Seller asked to meet outside campus at midnight.',
-      reporterId: 'seed-user-2',
     });
 
     expect(result.success).toBe(true);
     expect(result.report?.id).toBeDefined();
     expect(result.report?.status).toBe('pending');
+    expect(result.report?.reporterId).toBe('seed-user-2');
   });
 });

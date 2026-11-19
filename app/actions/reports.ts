@@ -26,14 +26,33 @@ export async function submitReportAction(
   input: SubmitReportInput
 ): Promise<SubmitReportResult> {
   try {
-    const { listingId, reason, details } = input;
+    // 1. Authenticate reporter: require active session
+    const session = await getSession();
+    if (!session?.userId) {
+      return {
+        success: false,
+        error: 'Authentication required. You must be signed in with your Bennett email to report a listing.',
+      };
+    }
+    const effectiveReporterId = session.userId;
 
-    // 1. Validate listing ID
+    const { listingId, reason, details } = input || {};
+
+    // 2. Validate listing ID
     if (!listingId || typeof listingId !== 'string' || listingId.trim() === '') {
       return { success: false, error: 'Listing ID is required.' };
     }
 
-    // 2. Validate violation category
+    const trimmedListingId = listingId.trim();
+
+    // 3. Verify listing exists
+    const db = getDatabaseService();
+    const listing = await db.getListingById(trimmedListingId);
+    if (!listing) {
+      return { success: false, error: 'Listing not found.' };
+    }
+
+    // 4. Validate violation category
     if (!reason || !REPORT_VIOLATION_CATEGORIES.includes(reason as ReportViolationCategory)) {
       return {
         success: false,
@@ -41,29 +60,12 @@ export async function submitReportAction(
       };
     }
 
-    // 3. Authenticate reporter
-    let effectiveReporterId = input.reporterId?.trim();
-    if (!effectiveReporterId) {
-      const session = await getSession();
-      if (session?.userId) {
-        effectiveReporterId = session.userId;
-      }
-    }
-
-    if (!effectiveReporterId) {
-      return {
-        success: false,
-        error: 'Authentication required. You must be signed in with your Bennett email to report a listing.',
-      };
-    }
-
-    // 4. Sanitize details
+    // 5. Sanitize details
     const sanitizedDetails = details ? details.trim().slice(0, 500) : undefined;
 
-    // 5. Persist via IDatabaseService
-    const db = getDatabaseService();
+    // 6. Persist via IDatabaseService
     const createdReport = await db.createReport({
-      listingId: listingId.trim(),
+      listingId: trimmedListingId,
       reporterId: effectiveReporterId,
       reason,
       details: sanitizedDetails,

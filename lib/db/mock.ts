@@ -718,6 +718,11 @@ export class MockDatabaseService implements IDatabaseService {
   // ==========================================================================
   async createReport(reportData: Omit<Report, 'id' | 'status' | 'createdAt'>): Promise<Report> {
     this.init();
+    const listing = this.listings.find((l) => l.id === reportData.listingId);
+    if (!listing) {
+      throw new Error(`Listing not found: ${reportData.listingId}`);
+    }
+
     const now = new Date().toISOString();
     const newReport: Report = {
       ...reportData,
