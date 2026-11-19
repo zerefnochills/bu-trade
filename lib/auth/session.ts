@@ -283,13 +283,21 @@ export async function requireOnboardedUser(
   }
 
   const db = getDatabaseService();
-  const profile = await db.getProfile(session.userId);
+  let profile = await db.getProfile(session.userId);
 
-  if (!profile || session.onboardingNeeded) {
-    const target = redirectTo
-      ? `/onboarding?redirectTo=${encodeURIComponent(redirectTo)}`
-      : '/onboarding';
-    redirect(target);
+  if (!profile) {
+    const namePart = (session.email || 'student').split('@')[0].replace(/[._-]/g, ' ');
+    const fallbackName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
+    profile = await db.createProfile({
+      id: session.userId,
+      email: session.email,
+      fullName: fallbackName || 'Bennett Student',
+      course: 'B.Tech CSE',
+      year: 2,
+      residence: 'Hostel',
+      whatsapp: '',
+    });
+    await updateSession({ onboardingNeeded: false, isOnboarded: true });
   }
 
   return {

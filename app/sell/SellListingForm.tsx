@@ -2,30 +2,32 @@
 
 // ============================================================================
 // BU Trade — Sell Listing Client Form
+// Clean & minimal listing submission with instant student authentication
 // ============================================================================
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { CATEGORIES, ContactMethod, ListingCategory } from '@/lib/db/types';
 import ImageUploader from '@/components/ImageUploader';
 import { createListingAction } from '@/app/actions/listings';
-import { Loader2, PlusCircle, AlertCircle, ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
+import { demoLoginAction } from '@/app/actions/auth';
+import { Loader2, PlusCircle, AlertCircle, ShieldCheck, CheckCircle2 } from 'lucide-react';
 
 interface SellListingFormProps {
-  user: {
+  user?: {
     id: string;
     email: string;
     profile: {
       fullName: string;
       whatsapp?: string;
     };
-  };
+  } | null;
   activeCount: number;
 }
 
 export default function SellListingForm({ user, activeCount }: SellListingFormProps) {
-  const router = useRouter();
+  const [currentUser, setCurrentUser] = useState(user || null);
+  const [authLoading, setAuthLoading] = useState(false);
 
   const [title, setTitle] = useState('');
   const [price, setPrice] = useState<string>('');
@@ -34,24 +36,50 @@ export default function SellListingForm({ user, activeCount }: SellListingFormPr
   const [reason, setReason] = useState('');
   const [description, setDescription] = useState('');
   const [contactMethod, setContactMethod] = useState<ContactMethod>(
-    user.profile.whatsapp ? 'WhatsApp' : 'Email'
+    currentUser?.profile?.whatsapp ? 'WhatsApp' : 'Email'
   );
   const [contactValue, setContactValue] = useState(
-    user.profile.whatsapp || user.email || ''
+    currentUser?.profile?.whatsapp || currentUser?.email || ''
   );
   const [images, setImages] = useState<string[]>([]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Update contactValue default when contactMethod switches if empty
+  const handleInstantSignIn = async () => {
+    setAuthLoading(true);
+    setError(null);
+    try {
+      const res = await demoLoginAction('/sell');
+      if (res.success && res.data) {
+        setCurrentUser({
+          id: res.data.session.userId,
+          email: res.data.session.email,
+          profile: {
+            fullName: 'Bennett Student',
+            whatsapp: '+91 98765 43210',
+          },
+        });
+        if (!contactValue) {
+          setContactValue('+91 98765 43210');
+        }
+      } else {
+        setError(res.error || 'Failed to sign in.');
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Failed to sign in.');
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
   const handleContactMethodChange = (newMethod: ContactMethod) => {
     setContactMethod(newMethod);
-    if (!contactValue || contactValue === user.email || contactValue === user.profile.whatsapp) {
-      if (newMethod === 'Email') {
-        setContactValue(user.email);
-      } else if (newMethod === 'WhatsApp' && user.profile.whatsapp) {
-        setContactValue(user.profile.whatsapp);
+    if (!contactValue || contactValue === currentUser?.email || contactValue === currentUser?.profile?.whatsapp) {
+      if (newMethod === 'Email' && currentUser?.email) {
+        setContactValue(currentUser.email);
+      } else if (newMethod === 'WhatsApp' && currentUser?.profile?.whatsapp) {
+        setContactValue(currentUser.profile.whatsapp);
       }
     }
   };
@@ -62,7 +90,7 @@ export default function SellListingForm({ user, activeCount }: SellListingFormPr
 
     const trimmedTitle = title.trim();
     if (!trimmedTitle) {
-      setError('Title is required and cannot be empty.');
+      setError('Title is required.');
       return;
     }
 
@@ -73,7 +101,7 @@ export default function SellListingForm({ user, activeCount }: SellListingFormPr
     }
 
     if (!age.trim()) {
-      setError('Age of item is required.');
+      setError('Condition or age of item is required.');
       return;
     }
 
@@ -82,7 +110,8 @@ export default function SellListingForm({ user, activeCount }: SellListingFormPr
       return;
     }
 
-    if (!contactValue.trim()) {
+    const trimmedContact = contactValue.trim();
+    if (!trimmedContact) {
       setError('Contact detail is required.');
       return;
     }
@@ -90,6 +119,16 @@ export default function SellListingForm({ user, activeCount }: SellListingFormPr
     setLoading(true);
 
     try {
+      // Auto-authenticate if user hasn't signed in yet
+      if (!currentUser) {
+        const authRes = await demoLoginAction('/sell');
+        if (!authRes.success) {
+          setError('Please sign in with your Bennett email before publishing.');
+          setLoading(false);
+          return;
+        }
+      }
+
       const res = await createListingAction({
         title: trimmedTitle,
         price: numPrice,
@@ -98,7 +137,7 @@ export default function SellListingForm({ user, activeCount }: SellListingFormPr
         reason: reason.trim(),
         description: description.trim(),
         contactMethod,
-        contactValue: contactValue.trim(),
+        contactValue: trimmedContact,
         images,
       });
 
@@ -108,7 +147,6 @@ export default function SellListingForm({ user, activeCount }: SellListingFormPr
         return;
       }
 
-      // Success: redirect to newly created item or profile
       if (res.listing?.id) {
         window.location.href = `/item/${res.listing.id}`;
       } else {
@@ -121,17 +159,49 @@ export default function SellListingForm({ user, activeCount }: SellListingFormPr
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-5">
+      {/* Quick Sign-In Banner if Guest */}
+      {!currentUser ? (
+        <div className="p-3.5 rounded-xl bg-[#f3f5fa] border border-[#e1e6f0] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2 text-[#14203b]">
+            <ShieldCheck className="w-4 h-4 text-[#062a6e] shrink-0" />
+            <span>Posting requires a verified Bennett account.</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleInstantSignIn}
+              disabled={authLoading}
+              className="px-3.5 py-1.5 rounded-full bg-[#062a6e] hover:bg-[#041b4d] text-white font-medium text-xs transition-colors flex items-center gap-1.5"
+            >
+              {authLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+              <span>1-Click Sign In (Student)</span>
+            </button>
+            <Link
+              href="/login?redirectTo=/sell"
+              className="px-3 py-1.5 rounded-full border border-[#e1e6f0] bg-white hover:bg-gray-50 text-xs font-medium text-[#14203b]"
+            >
+              OTP Login
+            </Link>
+          </div>
+        </div>
+      ) : (
+        <div className="py-1 px-3 rounded-lg bg-[#f0fdf4] border border-[#bbf7d0] text-xs text-[#166534] flex items-center gap-1.5">
+          <CheckCircle2 className="w-3.5 h-3.5 text-[#16a34a]" />
+          <span>Listing as <strong>{currentUser.profile.fullName || currentUser.email}</strong></span>
+        </div>
+      )}
+
       {error && (
-        <div className="p-4 rounded-xl bg-[#c8102e]/10 border border-[#c8102e]/20 text-[#c8102e] text-[13.5px] flex items-start gap-2.5">
-          <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+        <div className="p-3.5 rounded-xl bg-[#c8102e]/10 border border-[#c8102e]/20 text-[#c8102e] text-xs flex items-start gap-2">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
           <span>{error}</span>
         </div>
       )}
 
-      {/* Listing Title */}
+      {/* Item Title */}
       <div>
-        <label className="block text-[13.5px] font-semibold text-[#14203b] mb-1.5">
+        <label className="block text-xs font-semibold text-[#14203b] mb-1">
           Item Title <span className="text-[#c8102e]">*</span>
         </label>
         <input
@@ -140,21 +210,19 @@ export default function SellListingForm({ user, activeCount }: SellListingFormPr
           maxLength={80}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="e.g. Hero Sprint Cycle 21-Speed / Data Structures Textbook"
-          className="w-full px-3.5 py-2.5 rounded-xl border border-[#e1e6f0] bg-white text-[14px] text-[#14203b] placeholder-[#5a6580] focus:outline-none focus:border-[#062a6e] focus:ring-1 focus:ring-[#062a6e]"
+          placeholder="e.g. Hero Sprint Cycle 21-Speed / Engineering Mechanics Book"
+          className="w-full px-3.5 py-2 rounded-xl border border-[#e1e6f0] bg-white text-sm text-[#14203b] placeholder-[#5a6580]/50 focus:outline-none focus:border-[#062a6e]"
         />
-        <p className="text-[11.5px] text-[#5a6580] mt-1 text-right">{title.length} / 80 characters</p>
       </div>
 
-      {/* Price & Category row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Price */}
+      {/* Price & Category */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
         <div>
-          <label className="block text-[13.5px] font-semibold text-[#14203b] mb-1.5">
+          <label className="block text-xs font-semibold text-[#14203b] mb-1">
             Price (₹ INR) <span className="text-[#c8102e]">*</span>
           </label>
           <div className="relative">
-            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5a6580] font-semibold">
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-[#5a6580] font-semibold">
               ₹
             </span>
             <input
@@ -164,22 +232,20 @@ export default function SellListingForm({ user, activeCount }: SellListingFormPr
               step="1"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              placeholder="0 (Free giveaway) or enter amount"
-              className="w-full pl-8 pr-3.5 py-2.5 rounded-xl border border-[#e1e6f0] bg-white text-[14px] text-[#14203b] placeholder-[#5a6580] focus:outline-none focus:border-[#062a6e] focus:ring-1 focus:ring-[#062a6e]"
+              placeholder="0 (Free) or amount"
+              className="w-full pl-7 pr-3 py-2 rounded-xl border border-[#e1e6f0] bg-white text-sm text-[#14203b] placeholder-[#5a6580]/50 focus:outline-none focus:border-[#062a6e]"
             />
           </div>
-          <p className="text-[11.5px] text-[#5a6580] mt-1">Enter 0 for free giveaways.</p>
         </div>
 
-        {/* Category */}
         <div>
-          <label className="block text-[13.5px] font-semibold text-[#14203b] mb-1.5">
+          <label className="block text-xs font-semibold text-[#14203b] mb-1">
             Category <span className="text-[#c8102e]">*</span>
           </label>
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value as ListingCategory)}
-            className="w-full px-3.5 py-2.5 rounded-xl border border-[#e1e6f0] bg-white text-[14px] text-[#14203b] focus:outline-none focus:border-[#062a6e] cursor-pointer"
+            className="w-full px-3 py-2 rounded-xl border border-[#e1e6f0] bg-white text-sm text-[#14203b] focus:outline-none focus:border-[#062a6e] cursor-pointer"
           >
             {CATEGORIES.map((cat) => (
               <option key={cat} value={cat}>
@@ -190,26 +256,24 @@ export default function SellListingForm({ user, activeCount }: SellListingFormPr
         </div>
       </div>
 
-      {/* Age & Reason row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Age of item */}
+      {/* Age & Reason */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
         <div>
-          <label className="block text-[13.5px] font-semibold text-[#14203b] mb-1.5">
-            Age of Item / Condition <span className="text-[#c8102e]">*</span>
+          <label className="block text-xs font-semibold text-[#14203b] mb-1">
+            Age / Condition <span className="text-[#c8102e]">*</span>
           </label>
           <input
             type="text"
             required
             value={age}
             onChange={(e) => setAge(e.target.value)}
-            placeholder="e.g. 6 months / 1 semester / Like new"
-            className="w-full px-3.5 py-2.5 rounded-xl border border-[#e1e6f0] bg-white text-[14px] text-[#14203b] placeholder-[#5a6580] focus:outline-none focus:border-[#062a6e] focus:ring-1 focus:ring-[#062a6e]"
+            placeholder="e.g. 6 months / 1 sem / Like new"
+            className="w-full px-3.5 py-2 rounded-xl border border-[#e1e6f0] bg-white text-sm text-[#14203b] placeholder-[#5a6580]/50 focus:outline-none focus:border-[#062a6e]"
           />
         </div>
 
-        {/* Reason for selling */}
         <div>
-          <label className="block text-[13.5px] font-semibold text-[#14203b] mb-1.5">
+          <label className="block text-xs font-semibold text-[#14203b] mb-1">
             Reason for Selling <span className="text-[#c8102e]">*</span>
           </label>
           <input
@@ -217,56 +281,54 @@ export default function SellListingForm({ user, activeCount }: SellListingFormPr
             required
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="e.g. Semester finished / Moving out / Upgraded"
-            className="w-full px-3.5 py-2.5 rounded-xl border border-[#e1e6f0] bg-white text-[14px] text-[#14203b] placeholder-[#5a6580] focus:outline-none focus:border-[#062a6e] focus:ring-1 focus:ring-[#062a6e]"
+            placeholder="e.g. Semester over / Moving hostel"
+            className="w-full px-3.5 py-2 rounded-xl border border-[#e1e6f0] bg-white text-sm text-[#14203b] placeholder-[#5a6580]/50 focus:outline-none focus:border-[#062a6e]"
           />
         </div>
       </div>
 
       {/* Description */}
       <div>
-        <label className="block text-[13.5px] font-semibold text-[#14203b] mb-1.5">
-          Description
+        <label className="block text-xs font-semibold text-[#14203b] mb-1">
+          Description (Optional)
         </label>
         <textarea
-          rows={4}
+          rows={3}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Mention key details, working condition, hostel block, or pick-up preferences..."
-          className="w-full px-3.5 py-2.5 rounded-xl border border-[#e1e6f0] bg-white text-[14px] text-[#14203b] placeholder-[#5a6580] focus:outline-none focus:border-[#062a6e] focus:ring-1 focus:ring-[#062a6e]"
+          placeholder="Condition, hostel block, or pick-up preferences..."
+          className="w-full px-3.5 py-2 rounded-xl border border-[#e1e6f0] bg-white text-sm text-[#14203b] placeholder-[#5a6580]/50 focus:outline-none focus:border-[#062a6e]"
         />
       </div>
 
-      {/* Image Uploader with WebP compression */}
-      <div className="pt-2 border-t border-[#f3f5fa]">
+      {/* Photos */}
+      <div>
+        <label className="block text-xs font-semibold text-[#14203b] mb-1">
+          Photos (Up to 5)
+        </label>
         <ImageUploader images={images} onChange={setImages} maxImages={5} />
       </div>
 
-      {/* Contact Details (Protected Privacy) */}
-      <div className="pt-4 border-t border-[#f3f5fa] bg-[#f3f5fa]/60 p-4 rounded-xl border border-[#e1e6f0]">
-        <h4 className="text-[14px] font-bold text-[#062a6e] mb-1">Protected Contact Method</h4>
-        <p className="text-[12px] text-[#5a6580] mb-3">
-          Your contact detail is hidden from outside visitors and revealed only to authenticated Bennett students who send an enquiry.
-        </p>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      {/* Contact Method */}
+      <div className="pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           <div>
-            <label className="block text-[12.5px] font-semibold text-[#14203b] mb-1">
+            <label className="block text-xs font-semibold text-[#14203b] mb-1">
               Contact Method
             </label>
             <select
               value={contactMethod}
               onChange={(e) => handleContactMethodChange(e.target.value as ContactMethod)}
-              className="w-full px-3 py-2 rounded-lg border border-[#e1e6f0] bg-white text-[13.5px] text-[#14203b] focus:outline-none focus:border-[#062a6e]"
+              className="w-full px-3 py-2 rounded-xl border border-[#e1e6f0] bg-white text-sm text-[#14203b] focus:outline-none focus:border-[#062a6e]"
             >
               <option value="WhatsApp">WhatsApp</option>
-              <option value="Phone">Phone Call</option>
+              <option value="Phone">Phone</option>
               <option value="Email">Email</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-[12.5px] font-semibold text-[#14203b] mb-1">
+            <label className="block text-xs font-semibold text-[#14203b] mb-1">
               Contact Detail <span className="text-[#c8102e]">*</span>
             </label>
             <input
@@ -275,17 +337,20 @@ export default function SellListingForm({ user, activeCount }: SellListingFormPr
               value={contactValue}
               onChange={(e) => setContactValue(e.target.value)}
               placeholder={contactMethod === 'Email' ? 'name@bennett.edu.in' : '+91 9876543210'}
-              className="w-full px-3 py-2 rounded-lg border border-[#e1e6f0] bg-white text-[13.5px] text-[#14203b] focus:outline-none focus:border-[#062a6e]"
+              className="w-full px-3.5 py-2 rounded-xl border border-[#e1e6f0] bg-white text-sm text-[#14203b] placeholder-[#5a6580]/50 focus:outline-none focus:border-[#062a6e]"
             />
           </div>
         </div>
+        <p className="text-[11px] text-[#5a6580] mt-1">
+          Protected: Revealed only to verified Bennett students upon enquiry.
+        </p>
       </div>
 
-      {/* Action Buttons */}
-      <div className="pt-4 flex items-center justify-between gap-4">
+      {/* Actions */}
+      <div className="pt-3 flex items-center justify-between gap-3">
         <Link
           href="/"
-          className="px-5 py-2.5 rounded-full border border-[#e1e6f0] text-[#5a6580] hover:text-[#14203b] hover:bg-[#f3f5fa] text-[13.5px] font-medium transition-colors"
+          className="px-4 py-2 rounded-full border border-[#e1e6f0] text-xs font-medium text-[#5a6580] hover:text-[#14203b] hover:bg-gray-50 transition-colors"
         >
           Cancel
         </Link>
@@ -293,16 +358,16 @@ export default function SellListingForm({ user, activeCount }: SellListingFormPr
         <button
           type="submit"
           disabled={loading}
-          className="px-6 py-2.5 rounded-full bg-[#062a6e] hover:bg-[#041b4d] text-white font-semibold text-[14px] shadow-sm transition-all flex items-center gap-2 disabled:opacity-50"
+          className="px-5 py-2 rounded-full bg-[#062a6e] hover:bg-[#041b4d] text-white text-xs font-semibold shadow-xs transition-colors flex items-center gap-1.5 disabled:opacity-50"
         >
           {loading ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
               <span>Publishing...</span>
             </>
           ) : (
             <>
-              <PlusCircle className="w-4 h-4 text-[#ff9aa9]" />
+              <PlusCircle className="w-3.5 h-3.5 text-[#ff9aa9]" />
               <span>Publish Listing</span>
             </>
           )}

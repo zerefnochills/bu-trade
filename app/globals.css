@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -44,24 +46,27 @@
   }
   body {
     @apply bg-background text-foreground font-sans;
-    font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+    font-family: 'Inter', var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background-color: #ffffff;
     margin: 0;
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    letter-spacing: -0.011em;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-jakarta), var(--font-inter), system-ui, sans-serif;
-    letter-spacing: -0.02em;
+    font-family: 'Plus Jakarta Sans', var(--font-jakarta), var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    letter-spacing: -0.025em;
+    font-weight: 700;
   }
 }
 
+/* Bennett University container utility */
 .w-bu {
   max-width: 1160px;
   margin-left: auto;
   margin-right: auto;
-  padding-left: 20px;
-  padding-right: 20px;
+  width: 100%;
 }
