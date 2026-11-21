@@ -35,6 +35,11 @@ function LoginForm() {
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  const isMock =
+    process.env.NEXT_PUBLIC_USE_MOCK_DB === 'true' ||
+    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    process.env.NEXT_PUBLIC_SUPABASE_URL.includes('your-project');
+
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -57,7 +62,7 @@ function LoginForm() {
       const result = await requestOtpAction(null, { email: trimmedEmail });
       if (result.success) {
         setStep('otp');
-        setInfoMessage('Verification code sent! (Demo OTP: 123456)');
+        setInfoMessage(result.message || 'Verification code sent to your Bennett email inbox.');
       } else {
         setError(result.error || 'Failed to send verification code.');
       }
@@ -103,7 +108,7 @@ function LoginForm() {
     startTransition(async () => {
       const result = await requestOtpAction(null, { email: email.trim() });
       if (result.success) {
-        setInfoMessage('A new verification code has been sent. (Mock: 123456)');
+        setInfoMessage(result.message || 'A new verification code has been sent.');
       } else {
         setError(result.error || 'Failed to resend verification code.');
       }
@@ -197,17 +202,26 @@ function LoginForm() {
                 </p>
               </div>
 
-              {/* Dev / Mock Notice */}
-              <div className="p-3 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl flex items-start gap-2 text-xs text-[#475569]">
-                <Info className="w-4 h-4 flex-shrink-0 text-[#062a6e] mt-0.5" />
-                <div>
-                  <span className="font-semibold text-[#062a6e]">Campus Demo Mode:</span> Enter any valid{' '}
-                  <code className="bg-white px-1 py-0.5 rounded border border-[#cbd5e1] font-mono text-[11px]">
-                    @bennett.edu.in
-                  </code>{' '}
-                  email. The test verification code is <strong className="text-[#062a6e]">123456</strong>.
+              {/* Dev / Mock Notice or Live Notice */}
+              {isMock ? (
+                <div className="p-3 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl flex items-start gap-2 text-xs text-[#475569]">
+                  <Info className="w-4 h-4 flex-shrink-0 text-[#062a6e] mt-0.5" />
+                  <div>
+                    <span className="font-semibold text-[#062a6e]">Campus Demo Mode:</span> Enter any valid{' '}
+                    <code className="bg-white px-1 py-0.5 rounded border border-[#cbd5e1] font-mono text-[11px]">
+                      @bennett.edu.in
+                    </code>{' '}
+                    email. The test verification code is <strong className="text-[#062a6e]">123456</strong>.
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="p-3 bg-[#f0f4fc] border border-[#d6e2f7] rounded-xl flex items-start gap-2 text-xs text-[#1e3a8a]">
+                  <Info className="w-4 h-4 flex-shrink-0 text-[#062a6e] mt-0.5" />
+                  <div>
+                    <span className="font-semibold text-[#062a6e]">Official Verification:</span> We will send a secure 6-digit one-time code to your Bennett University inbox.
+                  </div>
+                </div>
+              )}
 
               <button
                 type="submit"
@@ -227,24 +241,28 @@ function LoginForm() {
                 )}
               </button>
 
-              <div className="relative my-4">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-[#e1e6f0]" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-white px-2 text-[#5a6580]">Instant Campus Access</span>
-                </div>
-              </div>
+              {isMock && (
+                <>
+                  <div className="relative my-4">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-[#e1e6f0]" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-white px-2 text-[#5a6580]">Instant Campus Access</span>
+                    </div>
+                  </div>
 
-              <button
-                type="button"
-                disabled={isPending}
-                onClick={handleDemoLogin}
-                className="w-full bg-[#f3f5fa] hover:bg-[#e1e6f0] text-[#062a6e] font-semibold py-2.5 px-4 rounded-full border border-[#e1e6f0] transition-all flex items-center justify-center gap-2 text-xs sm:text-sm disabled:opacity-60 active:scale-[0.99]"
-              >
-                <ShieldCheck className="w-4 h-4 text-[#062a6e]" />
-                <span>1-Click Sign In as Bennett Student</span>
-              </button>
+                  <button
+                    type="button"
+                    disabled={isPending}
+                    onClick={handleDemoLogin}
+                    className="w-full bg-[#f3f5fa] hover:bg-[#e1e6f0] text-[#062a6e] font-semibold py-2.5 px-4 rounded-full border border-[#e1e6f0] transition-all flex items-center justify-center gap-2 text-xs sm:text-sm disabled:opacity-60 active:scale-[0.99]"
+                  >
+                    <ShieldCheck className="w-4 h-4 text-[#062a6e]" />
+                    <span>1-Click Sign In as Bennett Student</span>
+                  </button>
+                </>
+              )}
             </form>
           )}
 
@@ -282,12 +300,16 @@ function LoginForm() {
                     autoFocus
                     value={otpCode}
                     onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
-                    placeholder="123456"
+                    placeholder={isMock ? "123456" : "••••••"}
                     className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#e1e6f0] focus:border-[#062a6e] focus:ring-2 focus:ring-[#062a6e]/10 rounded-xl text-center text-lg font-mono tracking-widest text-[#14203b] placeholder-[#5a6580]/40 outline-none transition-all"
                   />
                 </div>
                 <div className="flex items-center justify-between mt-2">
-                  <p className="text-xs text-[#5a6580]">Mock code: <span className="font-mono font-bold text-[#062a6e]">123456</span></p>
+                  {isMock ? (
+                    <p className="text-xs text-[#5a6580]">Mock code: <span className="font-mono font-bold text-[#062a6e]">123456</span></p>
+                  ) : (
+                    <p className="text-xs text-[#5a6580]">Check inbox & spam folder</p>
+                  )}
                   <button
                     type="button"
                     disabled={isPending}

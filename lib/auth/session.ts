@@ -77,6 +77,13 @@ export function parseSession(cookieValue: string): UserSession | null {
   }
 }
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export function isValidUuid(id?: string): boolean {
+  if (!id || typeof id !== 'string') return false;
+  return UUID_REGEX.test(id);
+}
+
 /**
  * Retrieves the active user session from cookies.
  */
@@ -85,7 +92,20 @@ export async function getSession(): Promise<UserSession | null> {
     const cookieStore = cookies();
     const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME);
     if (sessionCookie?.value) {
-      return parseSession(sessionCookie.value);
+      const parsed = parseSession(sessionCookie.value);
+      if (parsed) {
+        const isMock =
+          process.env.NEXT_PUBLIC_USE_MOCK_DB === 'true' ||
+          !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+          process.env.NEXT_PUBLIC_SUPABASE_URL.includes('your-project');
+
+        // Automatically invalidate stale mock session IDs ("user_...") when connecting to Supabase
+        if (!isMock && !UUID_REGEX.test(parsed.userId)) {
+          cookieStore.delete(SESSION_COOKIE_NAME);
+          return null;
+        }
+        return parsed;
+      }
     }
   } catch {
     // Outside request context (e.g., during tests or static gen)
@@ -286,18 +306,23 @@ export async function requireOnboardedUser(
   let profile = await db.getProfile(session.userId);
 
   if (!profile) {
-    const namePart = (session.email || 'student').split('@')[0].replace(/[._-]/g, ' ');
-    const fallbackName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
-    profile = await db.createProfile({
-      id: session.userId,
-      email: session.email,
-      fullName: fallbackName || 'Bennett Student',
-      course: 'B.Tech CSE',
-      year: 2,
-      residence: 'Hostel',
-      whatsapp: '',
-    });
-    await updateSession({ onboardingNeeded: false, isOnboarded: true });
+    try {
+      const namePart = (session.email || 'student').split('@')[0].replace(/[._-]/g, ' ');
+      const fallbackName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
+      profile = await db.createProfile({
+        id: session.userId,
+        email: session.email,
+        fullName: fallbackName || 'Bennett Student',
+        course: 'B.Tech CSE',
+        year: 2,
+        residence: 'Hostel',
+        whatsapp: '',
+      });
+      await updateSession({ onboardingNeeded: false, isOnboarded: true });
+    } catch {
+      await destroySession();
+      redirect('/login');
+    }
   }
 
   return {

@@ -27,6 +27,23 @@ export function middleware(request: NextRequest) {
       (session?.onboardingNeeded === false || session?.isOnboarded === true)
   );
 
+  const isMockMode =
+    process.env.NEXT_PUBLIC_USE_MOCK_DB === 'true' ||
+    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    process.env.NEXT_PUBLIC_SUPABASE_URL.includes('your-project') ||
+    process.env.NEXT_PUBLIC_SUPABASE_URL.trim() === '';
+
+  const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const isInvalidLiveSession =
+    session && !isMockMode && session.userId && !UUID_REGEX.test(session.userId);
+
+  if (isInvalidLiveSession) {
+    const loginUrl = new URL('/login', request.url);
+    const response = NextResponse.redirect(loginUrl);
+    response.cookies.delete('bu_trade_session');
+    return response;
+  }
+
   const isProtectedPath = pathname.startsWith('/profile') || pathname.includes('/edit');
   const isOnboardingPath = pathname === '/onboarding';
   const isLoginPath = pathname === '/login';

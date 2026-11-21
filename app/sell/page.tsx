@@ -24,28 +24,34 @@ export default async function SellPage() {
   if (session) {
     let profile = await db.getProfile(session.userId);
     if (!profile) {
-      const namePart = (session.email || 'student').split('@')[0].replace(/[._-]/g, ' ');
-      const fallbackName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
-      profile = await db.createProfile({
+      try {
+        const namePart = (session.email || 'student').split('@')[0].replace(/[._-]/g, ' ');
+        const fallbackName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
+        profile = await db.createProfile({
+          id: session.userId,
+          email: session.email,
+          fullName: fallbackName || 'Bennett Student',
+          course: 'B.Tech CSE',
+          year: 2,
+          residence: 'Hostel',
+          whatsapp: '',
+        });
+        await updateSession({ onboardingNeeded: false, isOnboarded: true });
+      } catch {
+        profile = null;
+      }
+    }
+    if (profile) {
+      activeCount = await db.countActiveListings(session.userId);
+      user = {
         id: session.userId,
         email: session.email,
-        fullName: fallbackName || 'Bennett Student',
-        course: 'B.Tech CSE',
-        year: 2,
-        residence: 'Hostel',
-        whatsapp: '',
-      });
-      await updateSession({ onboardingNeeded: false, isOnboarded: true });
+        profile: {
+          fullName: profile.fullName,
+          whatsapp: profile.whatsapp,
+        },
+      };
     }
-    activeCount = await db.countActiveListings(session.userId);
-    user = {
-      id: session.userId,
-      email: session.email,
-      profile: {
-        fullName: profile.fullName,
-        whatsapp: profile.whatsapp,
-      },
-    };
   }
 
   const isCapReached = activeCount >= 10;

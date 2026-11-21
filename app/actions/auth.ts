@@ -432,6 +432,13 @@ export async function demoLoginAction(
   redirectTo?: string
 ): Promise<ActionResponse<{ session: UserSession }>> {
   try {
+    if (!isMockMode()) {
+      return {
+        success: false,
+        error:
+          'Demo 1-click sign-in is only for offline mock mode. When connected to live Supabase, please sign in with your Bennett email to receive an OTP.',
+      };
+    }
     const email = 'student@bennett.edu.in';
     const db = getDatabaseService();
     let profile = await db.getProfileByEmail(email);

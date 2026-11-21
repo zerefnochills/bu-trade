@@ -24,8 +24,9 @@ export class SupabaseDatabaseService implements IDatabaseService {
       this.client = client;
     } else {
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-      this.client = createClient(supabaseUrl, supabaseAnonKey);
+      const supabaseKey =
+        process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+      this.client = createClient(supabaseUrl, supabaseKey);
     }
   }
 
@@ -502,6 +503,14 @@ export class SupabaseDatabaseService implements IDatabaseService {
     });
 
     if (error) {
+      // Graceful fallback for server action / service role contexts where auth.uid() is not set
+      const listing = await this.getListingById(listingId, viewerId);
+      if (listing && listing.hasUnlockedContact && listing.contactValue) {
+        return {
+          contactMethod: listing.contactMethod,
+          contactValue: listing.contactValue,
+        };
+      }
       throw new Error(`Failed to retrieve contact details: ${error.message}`);
     }
 
