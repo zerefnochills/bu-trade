@@ -186,7 +186,7 @@ export default function ProfileDashboard({
       )}
 
       {/* Status Tabs Navigation */}
-      <div className="border-b border-[#e1e6f0] flex items-center gap-2">
+      <div className="border-b border-[#e1e6f0] flex items-center gap-1 sm:gap-2 overflow-x-auto touch-scroll -mx-3.5 px-3.5 sm:mx-0 sm:px-0">
         <button
           type="button"
           onClick={() => setActiveTab('active')}

@@ -123,24 +123,25 @@ export default function FeedbackFeed({
         {/* Main Feed Column */}
         <div className="lg:col-span-8 space-y-4">
           {/* Reddit-Style "Create Post" Composer Bar */}
-          <div className="bg-white border border-[#e1e6f0] rounded-2xl p-3 sm:p-3.5 shadow-xs flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-[#062a6e] text-white flex items-center justify-center font-bold text-xs shrink-0">
+          <div className="bg-white border border-[#e1e6f0] rounded-2xl p-2.5 sm:p-3.5 shadow-xs flex items-center gap-2 sm:gap-3">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#062a6e] text-white flex items-center justify-center font-bold text-xs shrink-0">
               {currentUser?.email ? currentUser.email.charAt(0).toUpperCase() : 'BU'}
             </div>
 
             <button
               type="button"
               onClick={() => setIsModalOpen(true)}
-              className="flex-1 text-left px-4 py-2 bg-[#f8fafc] hover:bg-[#f1f5f9] border border-[#e2e8f0] hover:border-[#cbd5e1] rounded-xl text-xs sm:text-sm text-[#64748b] transition-all"
+              className="flex-1 text-left px-3 sm:px-4 py-2 bg-[#f8fafc] hover:bg-[#f1f5f9] border border-[#e2e8f0] hover:border-[#cbd5e1] rounded-xl text-xs sm:text-sm text-[#64748b] transition-all truncate"
             >
-              Post a review of an item you bought...
+              <span className="hidden sm:inline">Post a review of an item you bought...</span>
+              <span className="sm:hidden">Write a review...</span>
             </button>
 
             <button
               type="button"
               onClick={() => setIsModalOpen(true)}
               title="Add Image"
-              className="p-2 text-[#64748b] hover:text-[#062a6e] hover:bg-[#f1f5f9] rounded-xl transition-colors shrink-0"
+              className="hidden sm:flex p-2 text-[#64748b] hover:text-[#062a6e] hover:bg-[#f1f5f9] rounded-xl transition-colors shrink-0"
             >
               <ImageIcon className="w-5 h-5" />
             </button>
@@ -151,7 +152,8 @@ export default function FeedbackFeed({
               className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl bg-[#062a6e] hover:bg-[#041b4d] text-white text-xs font-semibold shadow-xs transition-colors shrink-0"
             >
               <PlusCircle className="w-4 h-4 text-[#ff9aa9]" />
-              <span>Post Feedback</span>
+              <span className="hidden sm:inline">Post Feedback</span>
+              <span className="sm:hidden">Post</span>
             </button>
           </div>
 

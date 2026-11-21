@@ -60,7 +60,7 @@ export default function ImageGallery({ images = [], title, category }: ImageGall
   return (
     <div className="w-full space-y-3">
       {/* Primary Display Frame */}
-      <div className="aspect-[4/3] bg-gradient-to-br from-[#f3f5fa] to-[#e1e6f0] rounded-2xl border border-[#e1e6f0] overflow-hidden relative flex items-center justify-center shadow-sm">
+      <div className="aspect-[4/3] sm:aspect-[4/3] md:aspect-[16/10] bg-gradient-to-br from-[#f3f5fa] to-[#e1e6f0] rounded-2xl border border-[#e1e6f0] overflow-hidden relative flex items-center justify-center shadow-sm">
         {hasImages && currentImage ? (
           <img
             src={currentImage}
@@ -69,10 +69,10 @@ export default function ImageGallery({ images = [], title, category }: ImageGall
           />
         ) : (
           <div className="flex flex-col items-center justify-center p-6 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-white/80 border border-[#e1e6f0] flex items-center justify-center text-[#062a6e] mb-3 shadow-xs">
-              <CategoryIcon className="w-8 h-8 text-[#062a6e]" />
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white/80 border border-[#e1e6f0] flex items-center justify-center text-[#062a6e] mb-2 sm:mb-3 shadow-xs">
+              <CategoryIcon className="w-7 h-7 sm:w-8 sm:h-8 text-[#062a6e]" />
             </div>
-            <span className="text-[13px] font-semibold text-[#062a6e] bg-white/80 px-3.5 py-1 rounded-full border border-[#e1e6f0]">
+            <span className="text-xs sm:text-[13px] font-semibold text-[#062a6e] bg-white/80 px-3 sm:px-3.5 py-1 rounded-full border border-[#e1e6f0]">
               {category}
             </span>
           </div>
@@ -80,7 +80,7 @@ export default function ImageGallery({ images = [], title, category }: ImageGall
 
         {/* Counter Badge if multiple images */}
         {validImages.length > 1 && (
-          <span className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-sm text-white text-[11px] font-semibold px-2.5 py-1 rounded-full">
+          <span className="absolute bottom-2.5 right-2.5 sm:bottom-3 sm:right-3 bg-black/70 backdrop-blur-sm text-white text-[10.5px] sm:text-[11px] font-semibold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full">
             {selectedIndex + 1} / {validImages.length}
           </span>
         )}
@@ -92,7 +92,7 @@ export default function ImageGallery({ images = [], title, category }: ImageGall
               type="button"
               onClick={handlePrev}
               aria-label="Previous image"
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 hover:bg-white text-[#14203b] flex items-center justify-center shadow-md transition-all active:scale-95"
+              className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-white/95 hover:bg-white text-[#14203b] flex items-center justify-center shadow-md transition-all active:scale-95"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -100,7 +100,7 @@ export default function ImageGallery({ images = [], title, category }: ImageGall
               type="button"
               onClick={handleNext}
               aria-label="Next image"
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 hover:bg-white text-[#14203b] flex items-center justify-center shadow-md transition-all active:scale-95"
+              className="absolute right-2.5 sm:right-3 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-white/95 hover:bg-white text-[#14203b] flex items-center justify-center shadow-md transition-all active:scale-95"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
@@ -110,7 +110,7 @@ export default function ImageGallery({ images = [], title, category }: ImageGall
 
       {/* Thumbnails Row */}
       {validImages.length > 1 && (
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        <div className="flex items-center gap-2 overflow-x-auto touch-scroll pb-1">
           {validImages.map((img, idx) => (
             <button
               key={idx}

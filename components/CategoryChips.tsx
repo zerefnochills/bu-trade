@@ -42,7 +42,7 @@ export default function CategoryChips({
 }: CategoryChipsProps) {
   return (
     <div
-      className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none py-1"
+      className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto touch-scroll pb-2 py-1 -mx-3.5 px-3.5 sm:mx-0 sm:px-0"
       role="tablist"
       aria-label="Filter listings by category"
     >
@@ -58,7 +58,7 @@ export default function CategoryChips({
             role="tab"
             aria-selected={isSelected}
             onClick={() => onSelectCategory(item.label)}
-            className={`whitespace-nowrap px-4 py-2 rounded-full text-[13px] font-medium transition-all duration-150 flex items-center gap-1.5 border shrink-0 ${
+            className={`whitespace-nowrap px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-[13px] font-medium transition-all duration-150 flex items-center gap-1.5 border shrink-0 active:scale-95 ${
               isSelected
                 ? 'bg-[#062a6e] text-white border-[#062a6e] shadow-sm font-semibold'
                 : 'bg-white text-[#14203b] border-[#e1e6f0] hover:bg-[#f3f5fa] hover:border-[#062a6e]/30'

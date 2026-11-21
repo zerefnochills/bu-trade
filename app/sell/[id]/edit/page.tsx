@@ -49,7 +49,7 @@ export default async function EditListingPage({ params }: EditPageProps) {
   const activeCount = await db.countActiveListings(user.id);
 
   return (
-    <div className="w-full bg-white min-h-[80vh] py-10 px-4">
+    <div className="w-full bg-white min-h-[80vh] py-6 sm:py-10 px-3.5 sm:px-4">
       <div className="max-w-[760px] mx-auto">
         {/* Breadcrumb & Navigation */}
         <div className="mb-6">

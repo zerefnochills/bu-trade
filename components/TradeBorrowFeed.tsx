@@ -112,7 +112,7 @@ export default function TradeBorrowFeed({
           <div
             role="tablist"
             aria-label="Filter by request type"
-            className="flex items-center p-1 rounded-xl bg-[#f3f5fa] border border-[#e5e7eb] max-w-fit"
+            className="flex items-center p-1 rounded-xl bg-[#f3f5fa] border border-[#e5e7eb] max-w-full overflow-x-auto touch-scroll"
           >
             <button
               type="button"

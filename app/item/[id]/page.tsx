@@ -87,23 +87,23 @@ export default async function ItemPage({ params }: ItemPageProps) {
   };
 
   return (
-    <div className="w-full bg-white min-h-[80vh] py-8 px-4">
+    <div className="w-full bg-white min-h-[80vh] py-5 sm:py-8 px-3.5 sm:px-4">
       <div className="max-w-[1160px] mx-auto">
         {/* Breadcrumb Navigation */}
-        <nav className="flex items-center gap-2 text-[13px] text-[#5a6580] mb-6 flex-wrap">
+        <nav className="flex items-center gap-2 text-[12px] sm:text-[13px] text-[#5a6580] mb-4 sm:mb-6 flex-wrap">
           <Link href="/" className="hover:text-[#062a6e] transition-colors">
             Home
           </Link>
           <span>/</span>
           <span className="text-[#5a6580]">{listing.category}</span>
           <span>/</span>
-          <span className="text-[#14203b] font-medium truncate max-w-[240px]">
+          <span className="text-[#14203b] font-medium truncate max-w-[200px] sm:max-w-[240px]">
             {listing.title}
           </span>
         </nav>
 
         {/* 2-Column Responsive Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-8 items-start">
           {/* Left Column: Gallery & Campus Safety Card */}
           <div className="lg:col-span-7 space-y-6">
             <ImageGallery

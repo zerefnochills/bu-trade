@@ -118,7 +118,7 @@ export default function HomeFeed({ initialListings }: HomeFeedProps) {
       </section>
 
       {/* Main Discovery Feed Section */}
-      <section id="listings-feed" className="max-w-[1160px] mx-auto px-4 pt-8">
+      <section id="listings-feed" className="max-w-[1160px] mx-auto px-3.5 sm:px-4 pt-6 sm:pt-8">
         {/* Category Filter Chips */}
         <div className="mb-3">
           <CategoryChips
@@ -136,9 +136,9 @@ export default function HomeFeed({ initialListings }: HomeFeedProps) {
           totalCount={filteredListings.length}
         />
 
-        {/* Listings Grid */}
+        {/* Listings Grid: 2 columns on mobile, 3 columns on iPad, 4 columns on desktop */}
         {filteredListings.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4">
             {filteredListings.map((listing) => (
               <ListingCard key={listing.id} listing={listing} />
             ))}

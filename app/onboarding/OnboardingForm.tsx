@@ -67,7 +67,7 @@ export default function OnboardingForm({ userEmail, redirectTo = '/' }: Onboardi
 
   return (
     <div className="max-w-[500px] w-full">
-      <div className="bg-white border border-[#e1e6f0] rounded-2xl shadow-[0_12px_36px_rgba(6,42,110,0.08)] p-6 sm:p-8">
+      <div className="bg-white border border-[#e1e6f0] rounded-2xl shadow-[0_12px_36px_rgba(6,42,110,0.08)] p-5 sm:p-8">
         {/* Header */}
         <div className="text-center mb-6">
           <Link href="/" className="inline-flex items-center gap-2 mb-2">

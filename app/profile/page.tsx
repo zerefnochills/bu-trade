@@ -31,10 +31,10 @@ export default async function ProfilePage() {
   const initial = (user.profile?.fullName || user.email || 'U').trim().charAt(0).toUpperCase() || 'U';
 
   return (
-    <div className="w-full bg-white min-h-[85vh] py-10 px-4">
-      <div className="max-w-[1160px] mx-auto space-y-8">
+    <div className="w-full bg-white min-h-[85vh] py-6 sm:py-10 px-3.5 sm:px-4">
+      <div className="max-w-[1160px] mx-auto space-y-6 sm:space-y-8">
         {/* Student Profile Summary Header Card */}
-        <div className="bg-gradient-to-r from-[#f3f5fa] via-white to-[#f3f5fa] rounded-2xl border border-[#e1e6f0] p-6 sm:p-8 shadow-xs">
+        <div className="bg-gradient-to-r from-[#f3f5fa] via-white to-[#f3f5fa] rounded-2xl border border-[#e1e6f0] p-4 sm:p-8 shadow-xs">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
             <div className="flex items-center gap-4">
               {/* Avatar Initial Circle */}

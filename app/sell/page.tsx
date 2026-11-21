@@ -57,7 +57,7 @@ export default async function SellPage() {
   const isCapReached = activeCount >= 10;
 
   return (
-    <div className="w-full bg-white min-h-[80vh] py-8 px-4">
+    <div className="w-full bg-white min-h-[80vh] py-6 sm:py-8 px-3.5 sm:px-4">
       <div className="max-w-[720px] mx-auto">
         {/* Header Breadcrumb & Title */}
         <div className="mb-6">
@@ -99,7 +99,7 @@ export default async function SellPage() {
             </div>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl border border-[#e1e6f0] p-6 sm:p-7 shadow-xs">
+          <div className="bg-white rounded-2xl border border-[#e1e6f0] p-4 sm:p-7 shadow-xs">
             <SellListingForm user={user} activeCount={activeCount} />
           </div>
         )}
