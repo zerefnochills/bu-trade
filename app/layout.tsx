@@ -5,6 +5,8 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { getSession } from '@/lib/auth/session';
 import { getDatabaseService } from '@/lib/db';
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -80,6 +82,8 @@ export default async function RootLayout({
         <Navbar user={user} />
         <main className="flex-1 flex flex-col w-full pb-20 lg:pb-0">{children}</main>
         <Footer />
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
