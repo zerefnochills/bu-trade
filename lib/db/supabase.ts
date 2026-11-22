@@ -6,14 +6,20 @@
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import {
+  BorrowTradeStatus,
+  BorrowTradeType,
   ContactMethod,
   Enquiry,
   Feedback,
+  FeedbackPost,
   GetListingsOptions,
+  GetTradeBorrowOptions,
   IDatabaseService,
   Listing,
+  ListingCategory,
   Profile,
   Report,
+  TradeBorrowRequest,
 } from './types';
 
 export class SupabaseDatabaseService implements IDatabaseService {
@@ -643,5 +649,456 @@ export class SupabaseDatabaseService implements IDatabaseService {
       comment: data.comment || undefined,
       createdAt: data.created_at,
     };
+  }
+
+  // ==========================================================================
+  // Feedback Posts & Reddit Voting (R3)
+  // ==========================================================================
+  async getFeedbackPosts(options?: {
+    sort?: 'top' | 'newest';
+    viewerId?: string;
+  }): Promise<FeedbackPost[]> {
+    const { sort = 'top', viewerId } = options || {};
+
+    let query = this.client.from('feedback_posts').select(`
+      *,
+      profiles:user_id (
+        full_name,
+        course,
+        year
+      )
+    `);
+
+    if (sort === 'newest') {
+      query = query.order('created_at', { ascending: false });
+    } else {
+      query = query.order('score', { ascending: false }).order('created_at', { ascending: false });
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      console.warn('Failed to fetch feedback posts from Supabase:', error.message);
+      return [];
+    }
+
+    const posts = data || [];
+    const userVoteMap = new Map<string, 1 | -1>();
+
+    if (viewerId && posts.length > 0) {
+      const { data: votes } = await this.client
+        .from('feedback_votes')
+        .select('feedback_id, vote_type')
+        .eq('user_id', viewerId);
+
+      if (votes) {
+        votes.forEach((v: any) => userVoteMap.set(v.feedback_id, v.vote_type as 1 | -1));
+      }
+    }
+
+    return posts.map((row: any) => ({
+      id: row.id,
+      userId: row.user_id,
+      itemTitle: row.item_title,
+      content: row.content,
+      rating: row.rating || undefined,
+      images: row.images || [],
+      listingId: row.listing_id || undefined,
+      score: row.score || 0,
+      upvotesCount: row.upvotes_count || 0,
+      downvotesCount: row.downvotes_count || 0,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      authorName: row.profiles?.full_name || 'Bennett Student',
+      authorCourse: row.profiles?.course || 'B.Tech CSE',
+      authorYear: row.profiles?.year || 2,
+      userVote: userVoteMap.get(row.id) || 0,
+    }));
+  }
+
+  async getFeedbackPostById(id: string, viewerId?: string): Promise<FeedbackPost | null> {
+    const { data, error } = await this.client
+      .from('feedback_posts')
+      .select(`
+        *,
+        profiles:user_id (
+          full_name,
+          course,
+          year
+        )
+      `)
+      .eq('id', id)
+      .maybeSingle();
+
+    if (error || !data) return null;
+
+    let userVote: 1 | -1 | 0 = 0;
+    if (viewerId) {
+      const { data: vote } = await this.client
+        .from('feedback_votes')
+        .select('vote_type')
+        .eq('feedback_id', id)
+        .eq('user_id', viewerId)
+        .maybeSingle();
+
+      if (vote) {
+        userVote = vote.vote_type as 1 | -1;
+      }
+    }
+
+    return {
+      id: data.id,
+      userId: data.user_id,
+      itemTitle: data.item_title,
+      content: data.content,
+      rating: data.rating || undefined,
+      images: data.images || [],
+      listingId: data.listing_id || undefined,
+      score: data.score || 0,
+      upvotesCount: data.upvotes_count || 0,
+      downvotesCount: data.downvotes_count || 0,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+      authorName: data.profiles?.full_name || 'Bennett Student',
+      authorCourse: data.profiles?.course || 'B.Tech CSE',
+      authorYear: data.profiles?.year || 2,
+      userVote,
+    };
+  }
+
+  async createFeedbackPost(
+    postData: Omit<
+      FeedbackPost,
+      | 'id'
+      | 'score'
+      | 'upvotesCount'
+      | 'downvotesCount'
+      | 'createdAt'
+      | 'updatedAt'
+      | 'authorName'
+      | 'authorCourse'
+      | 'authorYear'
+      | 'userVote'
+    >
+  ): Promise<FeedbackPost> {
+    const { data, error } = await this.client
+      .from('feedback_posts')
+      .insert({
+        user_id: postData.userId,
+        item_title: postData.itemTitle,
+        content: postData.content,
+        rating: postData.rating || null,
+        images: postData.images || [],
+        listing_id: postData.listingId || null,
+        score: 0,
+        upvotes_count: 0,
+        downvotes_count: 0,
+      })
+      .select(`
+        *,
+        profiles:user_id (
+          full_name,
+          course,
+          year
+        )
+      `)
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to create feedback post: ${error.message}`);
+    }
+
+    return {
+      id: data.id,
+      userId: data.user_id,
+      itemTitle: data.item_title,
+      content: data.content,
+      rating: data.rating || undefined,
+      images: data.images || [],
+      listingId: data.listing_id || undefined,
+      score: data.score || 0,
+      upvotesCount: data.upvotes_count || 0,
+      downvotesCount: data.downvotes_count || 0,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+      authorName: data.profiles?.full_name || 'Bennett Student',
+      authorCourse: data.profiles?.course || 'B.Tech CSE',
+      authorYear: data.profiles?.year || 2,
+      userVote: 0,
+    };
+  }
+
+  async voteFeedbackPost(
+    feedbackId: string,
+    userId: string,
+    voteType: 1 | -1
+  ): Promise<{
+    score: number;
+    userVote: 1 | -1 | 0;
+    upvotesCount: number;
+    downvotesCount: number;
+  }> {
+    const { data: existingVote } = await this.client
+      .from('feedback_votes')
+      .select('*')
+      .eq('feedback_id', feedbackId)
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    let newVote: 1 | -1 | 0 = voteType;
+
+    if (existingVote) {
+      if (existingVote.vote_type === voteType) {
+        // Toggle off
+        await this.client.from('feedback_votes').delete().eq('id', existingVote.id);
+        newVote = 0;
+      } else {
+        // Flip vote
+        await this.client
+          .from('feedback_votes')
+          .update({ vote_type: voteType })
+          .eq('id', existingVote.id);
+        newVote = voteType;
+      }
+    } else {
+      await this.client.from('feedback_votes').insert({
+        feedback_id: feedbackId,
+        user_id: userId,
+        vote_type: voteType,
+      });
+      newVote = voteType;
+    }
+
+    // Recompute score
+    const { data: allVotes } = await this.client
+      .from('feedback_votes')
+      .select('vote_type')
+      .eq('feedback_id', feedbackId);
+
+    const upvotesCount = (allVotes || []).filter((v: any) => v.vote_type === 1).length;
+    const downvotesCount = (allVotes || []).filter((v: any) => v.vote_type === -1).length;
+    const score = upvotesCount - downvotesCount;
+
+    await this.client
+      .from('feedback_posts')
+      .update({
+        score,
+        upvotes_count: upvotesCount,
+        downvotes_count: downvotesCount,
+      })
+      .eq('id', feedbackId);
+
+    return {
+      score,
+      userVote: newVote,
+      upvotesCount,
+      downvotesCount,
+    };
+  }
+
+  // ==========================================================================
+  // Trade / Borrow Requests (R4)
+  // ==========================================================================
+  async getTradeBorrowRequests(options?: GetTradeBorrowOptions): Promise<TradeBorrowRequest[]> {
+    let query = this.client.from('trade_borrow_requests').select(`
+      *,
+      profiles:user_id (
+        full_name,
+        course,
+        year
+      )
+    `);
+
+    if (options?.type && options.type !== 'all') {
+      query = query.eq('request_type', options.type);
+    }
+    if (options?.category && options.category !== 'All') {
+      query = query.eq('category', options.category);
+    }
+    if (options?.status) {
+      query = query.eq('status', options.status);
+    } else {
+      query = query.eq('status', 'active');
+    }
+    if (options?.userId) {
+      query = query.eq('user_id', options.userId);
+    }
+    if (options?.search && options.search.trim()) {
+      const q = options.search.trim();
+      query = query.or(`title.ilike.%${q}%,description.ilike.%${q}%,duration.ilike.%${q}%`);
+    }
+
+    query = query.order('created_at', { ascending: false });
+
+    const { data, error } = await query;
+    if (error) {
+      console.warn('Failed to fetch trade/borrow requests from Supabase:', error.message);
+      return [];
+    }
+
+    return (data || []).map((row: any) => ({
+      id: row.id,
+      userId: row.user_id,
+      title: row.title,
+      description: row.description || '',
+      requestType: row.request_type as BorrowTradeType,
+      duration: row.duration,
+      category: row.category as ListingCategory,
+      contactMethod: row.contact_method as ContactMethod,
+      contactValue: row.contact_value,
+      status: row.status as BorrowTradeStatus,
+      images: row.images || [],
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      requesterName: row.profiles?.full_name || 'Bennett Student',
+      requesterCourse: row.profiles?.course || 'B.Tech CSE',
+      requesterYear: row.profiles?.year || 2,
+    }));
+  }
+
+  async getTradeBorrowRequestById(id: string): Promise<TradeBorrowRequest | null> {
+    const { data, error } = await this.client
+      .from('trade_borrow_requests')
+      .select(`
+        *,
+        profiles:user_id (
+          full_name,
+          course,
+          year
+        )
+      `)
+      .eq('id', id)
+      .maybeSingle();
+
+    if (error || !data) return null;
+
+    return {
+      id: data.id,
+      userId: data.user_id,
+      title: data.title,
+      description: data.description || '',
+      requestType: data.request_type as BorrowTradeType,
+      duration: data.duration,
+      category: data.category as ListingCategory,
+      contactMethod: data.contact_method as ContactMethod,
+      contactValue: data.contact_value,
+      status: data.status as BorrowTradeStatus,
+      images: data.images || [],
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+      requesterName: data.profiles?.full_name || 'Bennett Student',
+      requesterCourse: data.profiles?.course || 'B.Tech CSE',
+      requesterYear: data.profiles?.year || 2,
+    };
+  }
+
+  async createTradeBorrowRequest(
+    requestData: Omit<
+      TradeBorrowRequest,
+      'id' | 'createdAt' | 'updatedAt' | 'requesterName' | 'requesterCourse' | 'requesterYear'
+    >
+  ): Promise<TradeBorrowRequest> {
+    const { data, error } = await this.client
+      .from('trade_borrow_requests')
+      .insert({
+        user_id: requestData.userId,
+        title: requestData.title,
+        description: requestData.description || '',
+        request_type: requestData.requestType,
+        duration: requestData.duration,
+        category: requestData.category,
+        contact_method: requestData.contactMethod,
+        contact_value: requestData.contactValue,
+        status: requestData.status || 'active',
+        images: requestData.images || [],
+      })
+      .select(`
+        *,
+        profiles:user_id (
+          full_name,
+          course,
+          year
+        )
+      `)
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to create trade/borrow request: ${error.message}`);
+    }
+
+    return {
+      id: data.id,
+      userId: data.user_id,
+      title: data.title,
+      description: data.description || '',
+      requestType: data.request_type as BorrowTradeType,
+      duration: data.duration,
+      category: data.category as ListingCategory,
+      contactMethod: data.contact_method as ContactMethod,
+      contactValue: data.contact_value,
+      status: data.status as BorrowTradeStatus,
+      images: data.images || [],
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+      requesterName: data.profiles?.full_name || 'Bennett Student',
+      requesterCourse: data.profiles?.course || 'B.Tech CSE',
+      requesterYear: data.profiles?.year || 2,
+    };
+  }
+
+  async updateTradeBorrowRequestStatus(
+    id: string,
+    status: BorrowTradeStatus,
+    userId: string
+  ): Promise<TradeBorrowRequest> {
+    const { data, error } = await this.client
+      .from('trade_borrow_requests')
+      .update({ status })
+      .eq('id', id)
+      .eq('user_id', userId)
+      .select(`
+        *,
+        profiles:user_id (
+          full_name,
+          course,
+          year
+        )
+      `)
+      .single();
+
+    if (error || !data) {
+      throw new Error(`Failed to update request status: ${error?.message || 'Request not found'}`);
+    }
+
+    return {
+      id: data.id,
+      userId: data.user_id,
+      title: data.title,
+      description: data.description || '',
+      requestType: data.request_type as BorrowTradeType,
+      duration: data.duration,
+      category: data.category as ListingCategory,
+      contactMethod: data.contact_method as ContactMethod,
+      contactValue: data.contact_value,
+      status: data.status as BorrowTradeStatus,
+      images: data.images || [],
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+      requesterName: data.profiles?.full_name || 'Bennett Student',
+      requesterCourse: data.profiles?.course || 'B.Tech CSE',
+      requesterYear: data.profiles?.year || 2,
+    };
+  }
+
+  async deleteTradeBorrowRequest(id: string, userId: string): Promise<boolean> {
+    const { error } = await this.client
+      .from('trade_borrow_requests')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId);
+
+    if (error) {
+      throw new Error(`Failed to delete request: ${error.message}`);
+    }
+    return true;
   }
 }
