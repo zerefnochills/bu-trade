@@ -6,6 +6,7 @@ import { getSession } from '@/lib/auth/session';
 import ImageGallery from '@/components/ImageGallery';
 import EnquiryModal from '@/components/EnquiryModal';
 import ReportModal from '@/components/ReportModal';
+import ShareButton from '@/components/ShareButton';
 import {
   ShieldCheck,
   ShieldAlert,
@@ -21,6 +22,8 @@ import {
   Mail,
   Flag,
   ArrowLeft,
+  Clock,
+  Sparkles,
 } from 'lucide-react';
 import { ContactMethod } from '@/lib/db/types';
 
@@ -77,7 +80,7 @@ export default async function ItemPage({ params }: ItemPageProps) {
         : cleanNumber.startsWith('91')
         ? cleanNumber
         : `91${cleanNumber}`;
-      const msg = encodeURIComponent(`Hi, I enquired about "${listing.title}" on BU Trade.`);
+      const msg = encodeURIComponent(`Hi! I enquired about "${listing.title}" on BU Trade. Is it still available?`);
       return `https://wa.me/${waNumber}?text=${msg}`;
     }
     if (method === 'Phone') {
@@ -87,20 +90,24 @@ export default async function ItemPage({ params }: ItemPageProps) {
   };
 
   return (
-    <div className="w-full bg-white min-h-[80vh] py-5 sm:py-8 px-3.5 sm:px-4">
+    <div className="w-full bg-white min-h-[80vh] py-4 sm:py-8 px-3.5 sm:px-4 pb-28 lg:pb-12">
       <div className="max-w-[1160px] mx-auto">
-        {/* Breadcrumb Navigation */}
-        <nav className="flex items-center gap-2 text-[12px] sm:text-[13px] text-[#5a6580] mb-4 sm:mb-6 flex-wrap">
-          <Link href="/" className="hover:text-[#062a6e] transition-colors">
-            Home
-          </Link>
-          <span>/</span>
-          <span className="text-[#5a6580]">{listing.category}</span>
-          <span>/</span>
-          <span className="text-[#14203b] font-medium truncate max-w-[200px] sm:max-w-[240px]">
-            {listing.title}
-          </span>
-        </nav>
+        {/* Top Header: Breadcrumbs & Share Button */}
+        <div className="flex items-center justify-between gap-2 mb-4 sm:mb-6">
+          <nav className="flex items-center gap-2 text-[12px] sm:text-[13px] text-[#5a6580] flex-wrap">
+            <Link href="/" className="hover:text-[#062a6e] transition-colors">
+              Home
+            </Link>
+            <span>/</span>
+            <span className="text-[#5a6580]">{listing.category}</span>
+            <span>/</span>
+            <span className="text-[#14203b] font-medium truncate max-w-[160px] sm:max-w-[240px]">
+              {listing.title}
+            </span>
+          </nav>
+
+          <ShareButton title={listing.title} />
+        </div>
 
         {/* 2-Column Responsive Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-8 items-start">
@@ -144,7 +151,7 @@ export default async function ItemPage({ params }: ItemPageProps) {
           </div>
 
           {/* Right Column: Details, Seller Profile, and 4-State Privacy Contact Card */}
-          <div className="lg:col-span-5 space-y-6">
+          <div className="lg:col-span-5 space-y-5">
             {/* Header info */}
             <div>
               <div className="flex items-center justify-between gap-2 mb-2">
@@ -170,21 +177,21 @@ export default async function ItemPage({ params }: ItemPageProps) {
               </h1>
 
               {/* Price */}
-              <div className="text-3xl font-extrabold text-[#c8102e] mt-3">
+              <div className="text-3xl font-extrabold text-[#c8102e] mt-2.5">
                 {listing.price === 0 ? 'Free giveaway' : `₹${listing.price.toLocaleString('en-IN')}`}
               </div>
             </div>
 
             {/* Key Item Attributes */}
-            <div className="grid grid-cols-2 gap-3 p-4 rounded-xl bg-[#f3f5fa] border border-[#e1e6f0] text-[13px]">
+            <div className="grid grid-cols-2 gap-3 p-4 rounded-xl bg-[#f8fafc] border border-[#e1e6f0] text-[13px]">
               <div>
-                <span className="text-[#5a6580] block text-[11.5px] font-medium uppercase tracking-wider">
-                  Item Age / Condition
+                <span className="text-[#5a6580] block text-[11px] font-semibold uppercase tracking-wider mb-0.5">
+                  Age / Condition
                 </span>
                 <span className="font-semibold text-[#14203b]">{listing.age}</span>
               </div>
               <div>
-                <span className="text-[#5a6580] block text-[11.5px] font-medium uppercase tracking-wider">
+                <span className="text-[#5a6580] block text-[11px] font-semibold uppercase tracking-wider mb-0.5">
                   Reason for Selling
                 </span>
                 <span className="font-semibold text-[#14203b]">{listing.reason}</span>
@@ -197,11 +204,11 @@ export default async function ItemPage({ params }: ItemPageProps) {
 
             {/* Description */}
             <div>
-              <h3 className="text-[13px] font-bold text-[#5a6580] uppercase tracking-wider mb-1.5">
+              <h3 className="text-[12px] font-bold text-[#5a6580] uppercase tracking-wider mb-1.5">
                 Description
               </h3>
               <p className="text-[14px] text-[#14203b] whitespace-pre-line leading-relaxed">
-                {listing.description || 'No additional description provided by the seller.'}
+                {listing.description || 'Verified Bennett University student listing.'}
               </p>
             </div>
 
@@ -313,7 +320,7 @@ export default async function ItemPage({ params }: ItemPageProps) {
                     <span>Contact details protected</span>
                   </div>
                   <p className="text-[12.5px] text-[#5a6580]">
-                    Send a quick enquiry to unlock {listing.sellerName || "the seller"}&apos;s verified {listing.contactMethod} contact.
+                    Send a quick enquiry to unlock {listing.sellerName || 'the seller'}&apos;s verified {listing.contactMethod} contact.
                   </p>
                   <EnquiryModal
                     listingId={listing.id}
@@ -348,6 +355,51 @@ export default async function ItemPage({ params }: ItemPageProps) {
               />
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Modern Sticky Bottom Quick Action Bar on Android & Mobile phones */}
+      <div className="lg:hidden fixed bottom-16 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-[#e1e6f0] px-4 py-2.5 shadow-[0_-4px_16px_rgba(6,42,110,0.08)] flex items-center justify-between gap-3">
+        <div>
+          <span className="text-[10px] uppercase font-bold text-[#5a6580] block">Price</span>
+          <span className="text-lg font-black text-[#c8102e]">
+            {listing.price === 0 ? 'Free' : `₹${listing.price.toLocaleString('en-IN')}`}
+          </span>
+        </div>
+
+        <div className="flex-1 max-w-[220px]">
+          {!session?.userId ? (
+            <Link
+              href={`/login?redirectTo=${encodeURIComponent(`/item/${listing.id}`)}`}
+              className="w-full py-2 px-3.5 rounded-full bg-[#062a6e] hover:bg-[#041b4d] text-white font-semibold text-xs text-center block shadow-sm active:scale-95 transition-all"
+            >
+              Sign In to Enquire
+            </Link>
+          ) : isOwner ? (
+            <Link
+              href={`/sell/${listing.id}/edit`}
+              className="w-full py-2 px-3.5 rounded-full bg-[#062a6e] text-white font-semibold text-xs text-center block shadow-sm active:scale-95 transition-all"
+            >
+              Edit Listing
+            </Link>
+          ) : isEnquired && listing.contactValue ? (
+            <a
+              href={getActionHref(listing.contactMethod, listing.contactValue)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-2 px-3.5 rounded-full bg-[#062a6e] text-white font-semibold text-xs text-center flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
+            >
+              <MessageSquare className="w-3.5 h-3.5 text-[#ff9aa9]" />
+              <span>Open {listing.contactMethod}</span>
+            </a>
+          ) : (
+            <EnquiryModal
+              listingId={listing.id}
+              listingTitle={listing.title}
+              sellerName={listing.sellerName}
+              currentUser={session}
+            />
+          )}
         </div>
       </div>
     </div>

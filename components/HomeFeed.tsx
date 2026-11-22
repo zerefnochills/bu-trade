@@ -7,7 +7,7 @@
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Search, PlusCircle, PackageSearch, ShieldCheck } from 'lucide-react';
+import { Search, PlusCircle, PackageSearch, ShieldCheck, X } from 'lucide-react';
 import { Listing } from '@/lib/db/types';
 import CategoryChips from './CategoryChips';
 import SearchAndSort, { SortOption } from './SearchAndSort';
@@ -135,6 +135,40 @@ export default function HomeFeed({ initialListings }: HomeFeedProps) {
           onSortChange={setSortBy}
           totalCount={filteredListings.length}
         />
+
+        {/* Active Filters Pill Bar */}
+        {(searchQuery.trim() !== '' || selectedCategory !== 'All') && (
+          <div className="flex items-center gap-2 mb-3.5 flex-wrap text-xs">
+            <span className="text-[#5a6580] font-medium">Active filters:</span>
+            {selectedCategory !== 'All' && (
+              <button
+                type="button"
+                onClick={() => setSelectedCategory('All')}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#f3f5fa] text-[#062a6e] font-semibold border border-[#e1e6f0] hover:bg-[#e1e6f0] active:scale-95 transition-all"
+              >
+                <span>{selectedCategory}</span>
+                <X className="w-3 h-3 text-[#5a6580]" />
+              </button>
+            )}
+            {searchQuery.trim() !== '' && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#f3f5fa] text-[#062a6e] font-semibold border border-[#e1e6f0] hover:bg-[#e1e6f0] active:scale-95 transition-all"
+              >
+                <span>&ldquo;{searchQuery}&rdquo;</span>
+                <X className="w-3 h-3 text-[#5a6580]" />
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handleClearFilters}
+              className="text-[#c8102e] hover:underline font-semibold ml-1 text-xs"
+            >
+              Reset all
+            </button>
+          </div>
+        )}
 
         {/* Listings Grid: 2 columns on mobile, 3 columns on iPad, 4 columns on desktop */}
         {filteredListings.length > 0 ? (

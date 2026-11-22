@@ -218,9 +218,22 @@ export default function SellListingForm({ user, activeCount }: SellListingFormPr
       {/* Price & Category */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
         <div>
-          <label className="block text-xs font-semibold text-[#14203b] mb-1">
-            Price (₹ INR) <span className="text-[#c8102e]">*</span>
-          </label>
+          <div className="flex items-center justify-between mb-1">
+            <label className="block text-xs font-semibold text-[#14203b]">
+              Price (₹ INR) <span className="text-[#c8102e]">*</span>
+            </label>
+            <button
+              type="button"
+              onClick={() => setPrice('0')}
+              className={`text-[11px] px-2 py-0.5 rounded-full border transition-colors ${
+                price === '0'
+                  ? 'bg-[#0a8a4a] text-white border-[#0a8a4a] font-semibold'
+                  : 'bg-[#f3f5fa] text-[#5a6580] border-[#e1e6f0] hover:text-[#062a6e]'
+              }`}
+            >
+              Free Giveaway (₹0)
+            </button>
+          </div>
           <div className="relative">
             <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-[#5a6580] font-semibold">
               ₹
@@ -256,11 +269,29 @@ export default function SellListingForm({ user, activeCount }: SellListingFormPr
         </div>
       </div>
 
-      {/* Age / Condition */}
+      {/* Age / Condition with Quick Presets */}
       <div>
-        <label className="block text-xs font-semibold text-[#14203b] mb-1">
-          Age / Condition <span className="text-[#c8102e]">*</span>
-        </label>
+        <div className="flex items-center justify-between flex-wrap gap-1 mb-1">
+          <label className="block text-xs font-semibold text-[#14203b]">
+            Age / Condition <span className="text-[#c8102e]">*</span>
+          </label>
+          <div className="flex items-center gap-1">
+            {['Like new', '1 Sem', '1 Year', 'Good condition'].map((preset) => (
+              <button
+                key={preset}
+                type="button"
+                onClick={() => setAge(preset)}
+                className={`text-[10.5px] px-2 py-0.5 rounded-full border transition-colors ${
+                  age === preset
+                    ? 'bg-[#062a6e] text-white border-[#062a6e] font-semibold'
+                    : 'bg-[#f8fafc] text-[#5a6580] border-[#e1e6f0] hover:border-[#062a6e]'
+                }`}
+              >
+                {preset}
+              </button>
+            ))}
+          </div>
+        </div>
         <input
           type="text"
           required
