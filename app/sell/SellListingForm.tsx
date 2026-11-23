@@ -304,20 +304,17 @@ export default function SellListingForm({ user, activeCount }: SellListingFormPr
 
       {/* Reason for Selling — Mandatory Requirement */}
       <div className="p-3.5 rounded-xl bg-[#f8fafc] border border-[#e1e6f0] space-y-2">
-        <div className="flex items-center justify-between flex-wrap gap-1">
-          <label className="block text-xs font-bold text-[#062a6e]">
-            Reason for Selling <span className="text-[#c8102e]">* (Required)</span>
-          </label>
-          <span className="text-[11px] text-[#5a6580]">Helps campus buyers verify authenticity</span>
-        </div>
+        <label className="block text-xs font-bold text-[#062a6e]">
+          Reason for Selling <span className="text-[#c8102e]">*</span>
+        </label>
 
         {/* Quick Select Reason Pills */}
         <div className="flex flex-wrap gap-1.5 pt-0.5">
           {[
             'Semester Completed',
-            'Moving Out / Hostel Clearance',
-            'Upgraded to New Model',
-            'Course / Lab Finished',
+            'Hostel Clearance',
+            'Upgraded Model',
+            'Course Finished',
             'No Longer Needed',
           ].map((preset) => (
             <button
@@ -340,7 +337,7 @@ export default function SellListingForm({ user, activeCount }: SellListingFormPr
           required
           value={reason}
           onChange={(e) => setReason(e.target.value)}
-          placeholder="Select a reason above or type your specific reason for selling..."
+          placeholder="Select above or type your reason..."
           className="w-full px-3.5 py-2 rounded-xl border border-[#e1e6f0] bg-white text-sm text-[#14203b] placeholder-[#5a6580]/50 focus:outline-none focus:border-[#062a6e]"
         />
       </div>

@@ -72,18 +72,18 @@ export default function HomeFeed({ initialListings }: HomeFeedProps) {
   return (
     <div className="w-full bg-white pb-16">
       {/* Hero Banner Section — Clean & Minimal */}
-      <section className="bg-[#fafbfc] border-b border-[#e1e6f0] py-10 sm:py-14 px-4">
+      <section className="bg-[#f8fafc] border-b border-[#e1e6f0] py-6 sm:py-9 px-4">
         <div className="max-w-[1160px] mx-auto text-center">
-          <h1 className="text-2xl sm:text-4xl font-bold text-[#062a6e] tracking-tight max-w-2xl mx-auto mb-2">
-            Buy & sell on campus with students you <span className="text-[#c8102e]">trust</span>.
+          <h1 className="text-2xl sm:text-4xl font-extrabold text-[#062a6e] tracking-tight max-w-xl mx-auto mb-1.5">
+            Bennett Campus <span className="text-[#c8102e]">Marketplace</span>
           </h1>
 
-          <p className="text-[#5a6580] text-sm sm:text-base max-w-xl mx-auto mb-6">
-            Verified @bennett.edu.in student marketplace. Zero fees.
+          <p className="text-[#5a6580] text-xs sm:text-sm max-w-md mx-auto mb-4 font-medium">
+            Verified students only · 0% fees · Safe campus trades
           </p>
 
           {/* Clean Search Bar */}
-          <div className="max-w-xl mx-auto flex flex-col sm:flex-row items-center gap-2 p-1.5 rounded-2xl bg-white border border-[#e1e6f0] shadow-xs">
+          <div className="max-w-xl mx-auto flex items-center gap-2 p-1.5 rounded-2xl bg-white border border-[#e1e6f0] shadow-xs">
             <div className="relative flex-1 w-full">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5a6580]" />
               <input
@@ -93,26 +93,17 @@ export default function HomeFeed({ initialListings }: HomeFeedProps) {
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') handleHeroSearchClick();
                 }}
-                placeholder="Search notes, cycles, kettles, electronics..."
+                placeholder="Search items, notes, cycles..."
                 className="w-full pl-10 pr-3 py-2 bg-transparent text-sm text-[#14203b] placeholder-[#5a6580]/60 focus:outline-none"
               />
             </div>
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <button
-                type="button"
-                onClick={handleHeroSearchClick}
-                className="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-[#062a6e] hover:bg-[#041b4d] text-white font-semibold text-xs transition-colors"
-              >
-                Search
-              </button>
-              <Link
-                href="/sell"
-                className="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-[#c8102e] hover:bg-[#a60d26] text-white font-semibold text-xs transition-colors flex items-center justify-center gap-1"
-              >
-                <PlusCircle className="w-3.5 h-3.5" />
-                <span>+ Sell</span>
-              </Link>
-            </div>
+            <button
+              type="button"
+              onClick={handleHeroSearchClick}
+              className="px-4 py-2 rounded-xl bg-[#062a6e] hover:bg-[#041b4d] text-white font-semibold text-xs transition-colors"
+            >
+              Search
+            </button>
           </div>
         </div>
       </section>

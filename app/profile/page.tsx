@@ -93,9 +93,9 @@ export default async function ProfilePage() {
             </div>
 
             {/* Platform Trust Tag */}
-            <div className="text-left sm:text-right text-[12.5px] text-[#5a6580] bg-white p-3 rounded-xl border border-[#e1e6f0] shrink-0">
-              <span className="font-semibold text-[#062a6e] block">Bennett Student Account</span>
-              <span>Joined BU Trade Campus Platform</span>
+            <div className="text-left sm:text-right text-[12px] text-[#5a6580] bg-white px-3 py-2 rounded-xl border border-[#e1e6f0] shrink-0">
+              <span className="font-semibold text-[#062a6e] block">Student Account</span>
+              <span>Bennett Verified</span>
             </div>
           </div>
         </div>
@@ -103,9 +103,9 @@ export default async function ProfilePage() {
         {/* Listings Lifecycle Management Dashboard */}
         <div>
           <div className="mb-4">
-            <h2 className="text-xl font-bold text-[#062a6e]">My Campus Listings</h2>
-            <p className="text-[13px] text-[#5a6580]">
-              Track enquiries, update prices, mark sold items, or delist products.
+            <h2 className="text-xl font-bold text-[#062a6e]">My Listings</h2>
+            <p className="text-[12.5px] text-[#5a6580]">
+              Manage your active, sold, and delisted items.
             </p>
           </div>
 

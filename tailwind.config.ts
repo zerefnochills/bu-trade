@@ -71,10 +71,10 @@ const config: Config = {
         full: "9999px",
       },
       fontFamily: {
-        sans: ["var(--font-inter)", "system-ui", "-apple-system", "sans-serif"],
-        heading: ["var(--font-jakarta)", "var(--font-inter)", "system-ui", "sans-serif"],
-        display: ["var(--font-jakarta)", "var(--font-inter)", "system-ui", "sans-serif"],
-        poppins: ["var(--font-poppins)", "var(--font-inter)", "sans-serif"],
+        sans: ["var(--font-outfit)", "var(--font-jakarta)", "system-ui", "-apple-system", "sans-serif"],
+        heading: ["var(--font-outfit)", "var(--font-jakarta)", "system-ui", "sans-serif"],
+        display: ["var(--font-outfit)", "var(--font-jakarta)", "system-ui", "sans-serif"],
+        poppins: ["var(--font-poppins)", "var(--font-outfit)", "sans-serif"],
       },
       maxWidth: {
         bu: "1160px",

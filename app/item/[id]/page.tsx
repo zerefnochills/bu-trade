@@ -119,33 +119,30 @@ export default async function ItemPage({ params }: ItemPageProps) {
               category={listing.category}
             />
 
-            {/* Bennett Safe Exchange Zone Card */}
-            <div className="bg-[#f3f5fa] rounded-2xl p-5 border border-[#e1e6f0] space-y-3">
-              <div className="flex items-center gap-2 text-[#062a6e] font-bold text-[14px]">
-                <MapPin className="w-4 h-4 text-[#c8102e]" />
-                <span>Bennett Campus Safe Exchange Zones</span>
-              </div>
-              <p className="text-[13px] text-[#5a6580] leading-relaxed">
-                For your safety, meet in well-lit, public areas inside the campus:
-              </p>
-              <ul className="text-[12.5px] text-[#14203b] space-y-1.5 list-disc list-inside">
-                <li>
-                  <strong>CBC Cafeteria:</strong> Central, busy seating area during daytime.
-                </li>
-                <li>
-                  <strong>Student Center / Sports Complex:</strong> High footfall public zone.
-                </li>
-                <li>
-                  <strong>Central Library Plaza:</strong> Safe well-monitored entrance area.
-                </li>
-              </ul>
-              <div className="pt-1">
+            {/* Bennett Safe Exchange Zone */}
+            <div className="bg-[#f8fafc] rounded-2xl p-4 border border-[#e1e6f0]">
+              <div className="flex items-center justify-between gap-2 mb-2.5">
+                <div className="flex items-center gap-1.5 text-[#062a6e] font-bold text-xs sm:text-[13px]">
+                  <MapPin className="w-3.5 h-3.5 text-[#c8102e]" />
+                  <span>Campus Meetup Spots</span>
+                </div>
                 <Link
                   href="/rules"
-                  className="text-[12.5px] text-[#062a6e] font-semibold underline underline-offset-2 hover:text-[#c8102e]"
+                  className="text-[11px] text-[#062a6e] font-semibold hover:underline"
                 >
-                  View full campus trade safety rules →
+                  Safety &rarr;
                 </Link>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                <span className="px-2.5 py-1 rounded-lg bg-white border border-[#e1e6f0] text-xs text-[#14203b] font-medium shadow-2xs">
+                  ☕ CBC Cafeteria
+                </span>
+                <span className="px-2.5 py-1 rounded-lg bg-white border border-[#e1e6f0] text-xs text-[#14203b] font-medium shadow-2xs">
+                  🏃 Student Center
+                </span>
+                <span className="px-2.5 py-1 rounded-lg bg-white border border-[#e1e6f0] text-xs text-[#14203b] font-medium shadow-2xs">
+                  📚 Library Plaza
+                </span>
               </div>
             </div>
           </div>
@@ -241,10 +238,10 @@ export default async function ItemPage({ params }: ItemPageProps) {
                   </div>
                   <div>
                     <h4 className="font-bold text-[#062a6e] text-[15px]">
-                      Seller Contact Protected
+                      Contact Protected
                     </h4>
-                    <p className="text-[12.5px] text-[#5a6580] max-w-xs mx-auto mt-0.5">
-                      Sign in with your @bennett.edu.in email to enquire and reveal seller contact details.
+                    <p className="text-[12px] text-[#5a6580] max-w-xs mx-auto mt-0.5">
+                      Sign in to view verified seller contact.
                     </p>
                   </div>
                   <div className="pt-1">
@@ -319,8 +316,8 @@ export default async function ItemPage({ params }: ItemPageProps) {
                     <Lock className="w-4 h-4" />
                     <span>Contact details protected</span>
                   </div>
-                  <p className="text-[12.5px] text-[#5a6580]">
-                    Send a quick enquiry to unlock {listing.sellerName || 'the seller'}&apos;s verified {listing.contactMethod} contact.
+                  <p className="text-[12px] text-[#5a6580]">
+                    Enquire to reveal {listing.sellerName || 'the seller'}&apos;s verified {listing.contactMethod} contact.
                   </p>
                   <EnquiryModal
                     listingId={listing.id}
