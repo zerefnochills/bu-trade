@@ -7,6 +7,7 @@ import ImageGallery from '@/components/ImageGallery';
 import EnquiryModal from '@/components/EnquiryModal';
 import ReportModal from '@/components/ReportModal';
 import ShareButton from '@/components/ShareButton';
+import TrackRecentlyViewed from '@/components/TrackRecentlyViewed';
 import {
   ShieldCheck,
   ShieldAlert,
@@ -91,6 +92,18 @@ export default async function ItemPage({ params }: ItemPageProps) {
 
   return (
     <div className="w-full bg-white min-h-[80vh] py-4 sm:py-8 px-3.5 sm:px-4 pb-28 lg:pb-12">
+      <TrackRecentlyViewed
+        item={{
+          id: listing.id,
+          title: listing.title,
+          price: listing.price,
+          category: listing.category,
+          image: listing.images?.[0],
+          age: listing.age,
+          sellerCourse: listing.sellerCourse,
+          sellerYear: listing.sellerYear,
+        }}
+      />
       <div className="max-w-[1160px] mx-auto">
         {/* Top Header: Breadcrumbs & Share Button */}
         <div className="flex items-center justify-between gap-2 mb-4 sm:mb-6">

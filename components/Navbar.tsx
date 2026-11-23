@@ -41,8 +41,8 @@ export default function Navbar({ user }: NavbarProps) {
   const userInitial = user?.fullName
     ? user.fullName.charAt(0).toUpperCase()
     : user?.email
-    ? user.email.charAt(0).toUpperCase()
-    : 'U';
+      ? user.email.charAt(0).toUpperCase()
+      : 'U';
 
   const isCurrentActive = (href: string) => {
     if (href === '/') return pathname === '/';
@@ -54,13 +54,13 @@ export default function Navbar({ user }: NavbarProps) {
     <>
       <header className="sticky top-0 z-40 w-full bg-white">
         {/* Top University Announcement Bar */}
-        <div className="bg-[#062a6e] text-[#dbe4ff] text-[12.5px] sm:text-[13.5px] py-1.5 px-3 sm:px-4 font-normal border-b border-[#041b4d]">
+        <div className="bg-[#062a6e] text-[#dbe4ff] text-[12px] sm:text-[13px] py-1.5 px-3 sm:px-4 font-normal border-b border-[#041b4d]">
           <div className="max-w-[1160px] mx-auto flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5 truncate">
               <ShieldCheck className="w-4 h-4 text-[#ff9aa9] shrink-0" />
-              <span className="truncate">The campus marketplace for Bennett University students</span>
+              <span className="truncate">Bennett University Campus Marketplace</span>
             </div>
-            <div className="flex items-center gap-2 sm:gap-3 shrink-0 text-[12px] sm:text-[13px]">
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0 text-[11.5px] sm:text-[12.5px]">
               <Link
                 href="/rules"
                 className="text-[#dbe4ff] hover:text-white transition-colors underline-offset-2 hover:underline"
@@ -114,7 +114,7 @@ export default function Navbar({ user }: NavbarProps) {
                     className={`px-3.5 py-2 rounded-xl text-[15px] sm:text-[16px] font-semibold transition-colors ${
                       isActive
                         ? 'text-[#c8102e] bg-[#f3f5fa] font-bold'
-                        : 'text-[#14203b] hover:text-[#c8102e] hover:bg-[#f3f5fa]'
+                        : 'text-[#14203b] hover:text-[#0066c0] hover:bg-[#eef4ff]'
                     }`}
                   >
                     {displayLabel}
@@ -128,11 +128,10 @@ export default function Navbar({ user }: NavbarProps) {
               <Link
                 href="/sell"
                 aria-label="Sell an item"
-                className="inline-flex items-center gap-1.5 bg-[#c8102e] hover:bg-[#a60d26] text-white text-[14px] sm:text-[15px] font-bold px-4 sm:px-5 py-2 rounded-full shadow-xs hover:shadow-sm transition-all active:scale-[0.98]"
+                className="inline-flex items-center gap-1.5 bg-[#c8102e] hover:bg-[#a60d26] text-white text-[13.5px] sm:text-[14.5px] font-bold px-3.5 sm:px-4.5 py-1.5 sm:py-2 rounded-full shadow-xs hover:shadow-sm transition-all active:scale-[0.98]"
               >
                 <Plus className="w-4 h-4 stroke-[2.5]" />
                 <span>Sell</span>
-                <span className="sr-only">Sell an item</span>
               </Link>
 
               {user ? (
@@ -146,7 +145,7 @@ export default function Navbar({ user }: NavbarProps) {
               ) : (
                 <Link
                   href="/login"
-                  className="inline-flex items-center gap-1.5 bg-[#f3f5fa] hover:bg-[#e1e6f0] text-[#062a6e] text-[13.5px] sm:text-[14.5px] font-bold px-4 sm:px-4.5 py-2 rounded-full border border-[#e1e6f0] transition-colors"
+                  className="inline-flex items-center gap-1.5 bg-[#f3f5fa] hover:bg-[#e1e6f0] text-[#062a6e] text-[13px] sm:text-[14px] font-bold px-4 py-1.5 sm:py-2 rounded-full border border-[#e1e6f0] transition-colors"
                 >
                   <UserCircle className="w-4 h-4 text-[#062a6e]" />
                   <span>Sign in</span>
@@ -181,7 +180,7 @@ export default function Navbar({ user }: NavbarProps) {
                       className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-[14.5px] font-medium transition-colors ${
                         isActive
                           ? 'text-[#c8102e] bg-[#f3f5fa] font-semibold'
-                          : 'text-[#14203b] hover:bg-[#f8fafc]'
+                          : 'text-[#14203b] hover:text-[#0066c0] hover:bg-[#eef4ff]'
                       }`}
                     >
                       <span>{displayLabel}</span>
@@ -213,29 +212,26 @@ export default function Navbar({ user }: NavbarProps) {
       {/* Modern App-Style Bottom Navigation Bar for Android, iPhone & iPad portrait */}
       <nav
         aria-label="Mobile Navigation"
-        aria-hidden="true"
         className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#e1e6f0] pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_20px_rgba(6,42,110,0.08)]"
       >
         <div className="grid grid-cols-5 items-center h-16 max-w-md mx-auto px-2">
-          {/* 1. Home / Market */}
+          {/* 1. Home */}
           <Link
             href="/"
-            className={`flex flex-col items-center justify-center gap-1 h-full transition-colors ${
-              pathname === '/' ? 'text-[#c8102e] font-semibold' : 'text-[#5a6580] hover:text-[#062a6e]'
-            }`}
+            className={`flex flex-col items-center justify-center gap-1 h-full transition-colors ${pathname === '/' ? 'text-[#c8102e] font-semibold' : 'text-[#5a6580] hover:text-[#062a6e]'
+              }`}
           >
             <Home className="w-5 h-5" />
-            <span className="text-[10.5px]">Market</span>
+            <span className="text-[10.5px]">Home</span>
           </Link>
 
           {/* 2. Trade/Borrow */}
           <Link
             href="/trade-borrow"
-            className={`flex flex-col items-center justify-center gap-1 h-full transition-colors ${
-              pathname.startsWith('/trade-borrow')
-                ? 'text-[#c8102e] font-semibold'
-                : 'text-[#5a6580] hover:text-[#062a6e]'
-            }`}
+            className={`flex flex-col items-center justify-center gap-1 h-full transition-colors ${pathname.startsWith('/trade-borrow')
+              ? 'text-[#c8102e] font-semibold'
+              : 'text-[#5a6580] hover:text-[#062a6e]'
+              }`}
           >
             <Repeat className="w-5 h-5" />
             <span className="text-[10.5px]">Borrow</span>
@@ -245,7 +241,7 @@ export default function Navbar({ user }: NavbarProps) {
           <div className="flex items-center justify-center">
             <Link
               href="/sell"
-              aria-label="Create listing"
+              aria-label="Sell an item"
               className="w-12 h-12 rounded-full bg-[#c8102e] hover:bg-[#a60d26] active:scale-95 text-white flex items-center justify-center shadow-lg -translate-y-2 border-2 border-white transition-all"
             >
               <Plus className="w-6 h-6 text-white stroke-[2.5]" />
@@ -255,11 +251,10 @@ export default function Navbar({ user }: NavbarProps) {
           {/* 4. Feed */}
           <Link
             href="/feed"
-            className={`flex flex-col items-center justify-center gap-1 h-full transition-colors ${
-              pathname.startsWith('/feed')
-                ? 'text-[#c8102e] font-semibold'
-                : 'text-[#5a6580] hover:text-[#062a6e]'
-            }`}
+            className={`flex flex-col items-center justify-center gap-1 h-full transition-colors ${pathname.startsWith('/feed')
+              ? 'text-[#c8102e] font-semibold'
+              : 'text-[#5a6580] hover:text-[#062a6e]'
+              }`}
           >
             <Sparkles className="w-5 h-5" />
             <span className="text-[10.5px]">Feed</span>
@@ -268,14 +263,13 @@ export default function Navbar({ user }: NavbarProps) {
           {/* 5. Profile */}
           <Link
             href={user ? '/profile' : '/login'}
-            className={`flex flex-col items-center justify-center gap-1 h-full transition-colors ${
-              pathname.startsWith('/profile') || pathname.startsWith('/login')
-                ? 'text-[#c8102e] font-semibold'
-                : 'text-[#5a6580] hover:text-[#062a6e]'
-            }`}
+            className={`flex flex-col items-center justify-center gap-1 h-full transition-colors ${pathname.startsWith('/profile') || pathname.startsWith('/login')
+              ? 'text-[#c8102e] font-semibold'
+              : 'text-[#5a6580] hover:text-[#062a6e]'
+              }`}
           >
             <UserCircle className="w-5 h-5" />
-            <span className="text-[10.5px]">{user ? 'Profile' : 'Login'}</span>
+            <span className="text-[10.5px]">{user ? 'Profile' : 'Sign in'}</span>
           </Link>
         </div>
       </nav>

@@ -61,7 +61,7 @@ export default function CategoryChips({
             className={`whitespace-nowrap px-3.5 sm:px-4.5 py-2 sm:py-2.5 rounded-full text-[13px] sm:text-[14.5px] font-semibold transition-all duration-150 flex items-center gap-2 border shrink-0 active:scale-95 ${
               isSelected
                 ? 'bg-[#062a6e] text-white border-[#062a6e] shadow-sm font-bold'
-                : 'bg-white text-[#14203b] border-[#e1e6f0] hover:bg-[#f3f5fa] hover:border-[#062a6e]/30'
+                : 'bg-white text-[#14203b] border-[#e1e6f0] hover:text-[#0066c0] hover:bg-[#eef4ff] hover:border-[#0066c0]/40'
             }`}
           >
             <IconComp className="w-4 h-4 shrink-0" />
