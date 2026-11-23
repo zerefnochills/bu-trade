@@ -34,7 +34,6 @@ export default function Navbar({ user }: NavbarProps) {
     { label: 'Home', href: '/' },
     { label: 'Trade/Borrow', href: '/trade-borrow' },
     { label: 'Feed', href: '/feed' },
-    { label: 'Sell an item', href: '/sell' },
     { label: 'My listings', href: '/profile' },
     { label: 'Safety', href: '/rules' },
   ];
@@ -128,10 +127,11 @@ export default function Navbar({ user }: NavbarProps) {
             <div className="flex items-center gap-2 sm:gap-2.5">
               <Link
                 href="/sell"
-                className="hidden sm:inline-flex items-center gap-1.5 bg-[#062a6e] hover:bg-[#041b4d] text-white text-[13px] font-semibold px-4 py-2 rounded-full shadow-sm transition-all active:scale-[0.98]"
+                aria-label="Sell an item"
+                className="inline-flex items-center gap-1 bg-[#c8102e] hover:bg-[#a60d26] text-white text-[12.5px] sm:text-[13px] font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-full shadow-xs hover:shadow-sm transition-all active:scale-[0.98]"
               >
-                <PlusCircle className="w-4 h-4 text-[#ff9aa9]" />
-                <span>+ Sell</span>
+                <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
+                <span>Sell</span>
               </Link>
 
               {user ? (
@@ -244,7 +244,7 @@ export default function Navbar({ user }: NavbarProps) {
             <Link
               href="/sell"
               aria-label="Sell an item"
-              className="w-12 h-12 rounded-full bg-[#062a6e] hover:bg-[#041b4d] active:scale-95 text-white flex items-center justify-center shadow-lg -translate-y-2 border-2 border-white transition-all"
+              className="w-12 h-12 rounded-full bg-[#c8102e] hover:bg-[#a60d26] active:scale-95 text-white flex items-center justify-center shadow-lg -translate-y-2 border-2 border-white transition-all"
             >
               <Plus className="w-6 h-6 text-white stroke-[2.5]" />
             </Link>
