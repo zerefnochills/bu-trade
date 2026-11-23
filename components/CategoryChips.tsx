@@ -58,13 +58,13 @@ export default function CategoryChips({
             role="tab"
             aria-selected={isSelected}
             onClick={() => onSelectCategory(item.label)}
-            className={`whitespace-nowrap px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-[13px] font-medium transition-all duration-150 flex items-center gap-1.5 border shrink-0 active:scale-95 ${
+            className={`whitespace-nowrap px-3.5 sm:px-4.5 py-2 sm:py-2.5 rounded-full text-[13px] sm:text-[14.5px] font-semibold transition-all duration-150 flex items-center gap-2 border shrink-0 active:scale-95 ${
               isSelected
-                ? 'bg-[#062a6e] text-white border-[#062a6e] shadow-sm font-semibold'
+                ? 'bg-[#062a6e] text-white border-[#062a6e] shadow-sm font-bold'
                 : 'bg-white text-[#14203b] border-[#e1e6f0] hover:bg-[#f3f5fa] hover:border-[#062a6e]/30'
             }`}
           >
-            <IconComp className="w-3.5 h-3.5 shrink-0" />
+            <IconComp className="w-4 h-4 shrink-0" />
             <span>{item.label}</span>
           </button>
         );

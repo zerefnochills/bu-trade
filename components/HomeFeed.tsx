@@ -72,18 +72,18 @@ export default function HomeFeed({ initialListings }: HomeFeedProps) {
   return (
     <div className="w-full bg-white pb-16">
       {/* Hero Banner Section — Clean & Minimal */}
-      <section className="bg-[#f8fafc] border-b border-[#e1e6f0] py-6 sm:py-9 px-4">
+      <section className="bg-[#f8fafc] border-b border-[#e1e6f0] py-7 sm:py-11 px-4">
         <div className="max-w-[1160px] mx-auto text-center">
-          <h1 className="text-2xl sm:text-4xl font-extrabold text-[#062a6e] tracking-tight max-w-xl mx-auto mb-1.5">
+          <h1 className="text-3xl sm:text-5xl font-black text-[#062a6e] tracking-tight max-w-2xl mx-auto mb-2">
             Bennett Campus <span className="text-[#c8102e]">Marketplace</span>
           </h1>
 
-          <p className="text-[#5a6580] text-xs sm:text-sm max-w-md mx-auto mb-4 font-medium">
+          <p className="text-[#5a6580] text-[13.5px] sm:text-[15.5px] max-w-lg mx-auto mb-5 font-medium">
             Verified students only · 0% fees · Safe campus trades
           </p>
 
           {/* Clean Search Bar */}
-          <div className="max-w-xl mx-auto flex items-center gap-2 p-1.5 rounded-2xl bg-white border border-[#e1e6f0] shadow-xs">
+          <div className="max-w-xl mx-auto flex items-center gap-2 p-2 rounded-2xl bg-white border border-[#e1e6f0] shadow-sm">
             <div className="relative flex-1 w-full">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5a6580]" />
               <input
@@ -94,13 +94,13 @@ export default function HomeFeed({ initialListings }: HomeFeedProps) {
                   if (e.key === 'Enter') handleHeroSearchClick();
                 }}
                 placeholder="Search items, notes, cycles..."
-                className="w-full pl-10 pr-3 py-2 bg-transparent text-sm text-[#14203b] placeholder-[#5a6580]/60 focus:outline-none"
+                className="w-full pl-10 pr-3 py-2 bg-transparent text-[15px] sm:text-[16px] text-[#14203b] placeholder-[#5a6580]/60 focus:outline-none"
               />
             </div>
             <button
               type="button"
               onClick={handleHeroSearchClick}
-              className="px-4 py-2 rounded-xl bg-[#062a6e] hover:bg-[#041b4d] text-white font-semibold text-xs transition-colors"
+              className="px-5 py-2.5 rounded-xl bg-[#062a6e] hover:bg-[#041b4d] text-white font-bold text-[13.5px] sm:text-[14px] transition-colors shrink-0"
             >
               Search
             </button>
@@ -129,7 +129,7 @@ export default function HomeFeed({ initialListings }: HomeFeedProps) {
 
         {/* Active Filters Pill Bar */}
         {(searchQuery.trim() !== '' || selectedCategory !== 'All') && (
-          <div className="flex items-center gap-2 mb-3.5 flex-wrap text-xs">
+          <div className="flex items-center gap-2 mb-3.5 flex-wrap text-[13px] sm:text-[14px]">
             <span className="text-[#5a6580] font-medium">Active filters:</span>
             {selectedCategory !== 'All' && (
               <button
@@ -201,45 +201,45 @@ export default function HomeFeed({ initialListings }: HomeFeedProps) {
         {/* Campus Commerce 3 Steps — Clean & Minimal */}
         <div className="mt-14 pt-8 border-t border-[#e1e6f0]">
           <div className="text-center mb-6">
-            <h2 className="text-lg font-bold text-[#062a6e]">
+            <h2 className="text-xl sm:text-2xl font-bold text-[#062a6e]">
               Campus commerce in 3 simple steps
             </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-[#f8fafc] p-4 rounded-xl border border-[#e1e6f0] text-center">
-              <div className="w-7 h-7 rounded-full bg-[#062a6e] text-white flex items-center justify-center font-bold text-xs mx-auto mb-2">
+            <div className="bg-[#f8fafc] p-5 rounded-xl border border-[#e1e6f0] text-center">
+              <div className="w-8 h-8 rounded-full bg-[#062a6e] text-white flex items-center justify-center font-bold text-sm mx-auto mb-2.5">
                 1
               </div>
-              <h3 className="font-semibold text-[#14203b] text-sm mb-1 flex items-center justify-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#062a6e]" />
+              <h3 className="font-bold text-[#14203b] text-[15px] sm:text-[16px] mb-1.5 flex items-center justify-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-[#062a6e]" />
                 BU Email Access
               </h3>
-              <p className="text-xs text-[#5a6580]">
+              <p className="text-[13px] sm:text-[14px] text-[#5a6580]">
                 Verified @bennett.edu.in student exclusivity.
               </p>
             </div>
 
-            <div className="bg-[#f8fafc] p-4 rounded-xl border border-[#e1e6f0] text-center">
-              <div className="w-7 h-7 rounded-full bg-[#062a6e] text-white flex items-center justify-center font-bold text-xs mx-auto mb-2">
+            <div className="bg-[#f8fafc] p-5 rounded-xl border border-[#e1e6f0] text-center">
+              <div className="w-8 h-8 rounded-full bg-[#062a6e] text-white flex items-center justify-center font-bold text-sm mx-auto mb-2.5">
                 2
               </div>
-              <h3 className="font-semibold text-[#14203b] text-sm mb-1">
+              <h3 className="font-bold text-[#14203b] text-[15px] sm:text-[16px] mb-1.5">
                 Browse & Connect
               </h3>
-              <p className="text-xs text-[#5a6580]">
+              <p className="text-[13px] sm:text-[14px] text-[#5a6580]">
                 Explore campus listings and enquiry instantly.
               </p>
             </div>
 
-            <div className="bg-[#f8fafc] p-4 rounded-xl border border-[#e1e6f0] text-center">
-              <div className="w-7 h-7 rounded-full bg-[#062a6e] text-white flex items-center justify-center font-bold text-xs mx-auto mb-2">
+            <div className="bg-[#f8fafc] p-5 rounded-xl border border-[#e1e6f0] text-center">
+              <div className="w-8 h-8 rounded-full bg-[#062a6e] text-white flex items-center justify-center font-bold text-sm mx-auto mb-2.5">
                 3
               </div>
-              <h3 className="font-semibold text-[#14203b] text-sm mb-1">
+              <h3 className="font-bold text-[#14203b] text-[15px] sm:text-[16px] mb-1.5">
                 Meet on Campus
               </h3>
-              <p className="text-xs text-[#5a6580]">
+              <p className="text-[13px] sm:text-[14px] text-[#5a6580]">
                 Meet in public spots on campus and trade directly.
               </p>
             </div>

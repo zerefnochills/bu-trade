@@ -73,15 +73,15 @@ export default function ListingCard({ listing }: ListingCardProps) {
 
         {/* Condition / Age Badge (Top Left) */}
         {listing.age && (
-          <span className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 bg-[#14203b]/85 backdrop-blur-md text-white px-2 py-0.5 rounded-full text-[10px] sm:text-[10.5px] font-medium flex items-center gap-1 shadow-xs max-w-[55%] truncate">
-            <Clock className="w-2.5 h-2.5 shrink-0" />
+          <span className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 bg-[#14203b]/85 backdrop-blur-md text-white px-2.5 py-1 rounded-full text-[11px] sm:text-[12px] font-medium flex items-center gap-1.5 shadow-xs max-w-[55%] truncate">
+            <Clock className="w-3 h-3 shrink-0" />
             <span className="truncate">{listing.age}</span>
           </span>
         )}
 
         {/* Category Badge (Top Right) */}
-        <span className="absolute top-2 right-2 sm:top-2.5 sm:right-2.5 bg-white/95 backdrop-blur-md px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-[11px] font-semibold text-[#062a6e] border border-[#e1e6f0] shadow-xs flex items-center gap-1 max-w-[70%] truncate">
-          <CategoryIcon className="w-3 h-3 text-[#062a6e] shrink-0" />
+        <span className="absolute top-2 right-2 sm:top-2.5 sm:right-2.5 bg-white/95 backdrop-blur-md px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-[12px] font-bold text-[#062a6e] border border-[#e1e6f0] shadow-xs flex items-center gap-1.5 max-w-[70%] truncate">
+          <CategoryIcon className="w-3.5 h-3.5 text-[#062a6e] shrink-0" />
           <span className="truncate">{listing.category}</span>
         </span>
 
@@ -105,12 +105,12 @@ export default function ListingCard({ listing }: ListingCardProps) {
       {/* Card Content Body */}
       <div className="p-3 sm:p-4 flex flex-col flex-1">
         {/* Price in Bennett Red */}
-        <div className="flex items-baseline justify-between gap-1 mb-0.5 sm:mb-1">
-          <span className="text-[17px] sm:text-[20px] font-extrabold text-[#c8102e]">
+        <div className="flex items-baseline justify-between gap-1 mb-1">
+          <span className="text-[20px] sm:text-[23px] font-black text-[#c8102e]">
             {listing.price === 0 ? 'Free' : `₹${listing.price.toLocaleString('en-IN')}`}
           </span>
           <span
-            className={`px-1.5 sm:px-2 py-0.5 rounded-full font-medium text-[9.5px] sm:text-[10.5px] shrink-0 ${
+            className={`px-2 py-0.5 rounded-full font-bold text-[11px] sm:text-[12px] shrink-0 ${
               isSold
                 ? 'text-gray-600 bg-gray-100'
                 : isDelisted
@@ -123,21 +123,21 @@ export default function ListingCard({ listing }: ListingCardProps) {
         </div>
 
         {/* Title */}
-        <h3 className="font-semibold text-[#14203b] text-[13.5px] sm:text-[15px] group-hover:text-[#062a6e] transition-colors line-clamp-1 sm:line-clamp-2 mb-1 leading-snug">
+        <h3 className="font-bold text-[#14203b] text-[15px] sm:text-[16.5px] group-hover:text-[#062a6e] transition-colors line-clamp-1 sm:line-clamp-2 mb-1.5 leading-snug">
           {listing.title}
         </h3>
 
         {/* Clamped Description */}
-        <p className="text-[12px] sm:text-[12.5px] text-[#5a6580] line-clamp-1 sm:line-clamp-2 mb-2 sm:mb-3 flex-1 leading-normal">
+        <p className="text-[13px] sm:text-[14px] text-[#5a6580] line-clamp-1 sm:line-clamp-2 mb-2 sm:mb-3 flex-1 leading-normal">
           {listing.description || `Reason: ${listing.reason}`}
         </p>
 
         {/* Card Footer / Seller Metadata */}
-        <div className="pt-2 border-t border-[#f3f5fa] flex items-center justify-between text-[11px] sm:text-[12px]">
+        <div className="pt-2 border-t border-[#f3f5fa] flex items-center justify-between text-[12px] sm:text-[13px]">
           <span className="text-[#5a6580] truncate font-medium max-w-[130px] sm:max-w-[170px]" title={sellerInfo}>
             {sellerInfo}
           </span>
-          <span className="text-[#062a6e] group-hover:underline text-[11px] font-semibold flex items-center gap-0.5">
+          <span className="text-[#062a6e] group-hover:underline text-[12px] sm:text-[13px] font-bold flex items-center gap-0.5">
             View &rarr;
           </span>
         </div>

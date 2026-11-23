@@ -5,7 +5,7 @@ import Image from 'next/image';
 export default function Footer() {
   return (
     <footer className="bg-[#062a6e] text-[#b9c8f0] py-8 sm:py-9 border-t border-[#041b4d] mt-auto pb-24 lg:pb-9">
-      <div className="max-w-[1160px] mx-auto px-4 sm:px-5 flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6 text-xs sm:text-[13.5px]">
+      <div className="max-w-[1160px] mx-auto px-4 sm:px-5 flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6 text-[13px] sm:text-[14px]">
         {/* Brand Block */}
         <Link href="/" className="flex items-center gap-2.5 text-white group">
           <div className="w-[36px] h-[36px] rounded-[8px] bg-white p-[2px] flex items-center justify-center overflow-hidden">

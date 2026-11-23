@@ -238,7 +238,7 @@ export default async function ItemPage({ params }: ItemPageProps) {
                   </div>
                   <div>
                     <h4 className="font-bold text-[#062a6e] text-[15px]">
-                      Contact Protected
+                      Seller Contact Protected
                     </h4>
                     <p className="text-[12px] text-[#5a6580] max-w-xs mx-auto mt-0.5">
                       Sign in to view verified seller contact.
@@ -360,7 +360,7 @@ export default async function ItemPage({ params }: ItemPageProps) {
         <div>
           <span className="text-[10px] uppercase font-bold text-[#5a6580] block">Price</span>
           <span className="text-lg font-black text-[#c8102e]">
-            {listing.price === 0 ? 'Free' : `₹${listing.price.toLocaleString('en-IN')}`}
+            {listing.price === 0 ? 'Free' : `₹ ${listing.price.toLocaleString('en-IN')}`}
           </span>
         </div>
 
@@ -370,14 +370,14 @@ export default async function ItemPage({ params }: ItemPageProps) {
               href={`/login?redirectTo=${encodeURIComponent(`/item/${listing.id}`)}`}
               className="w-full py-2 px-3.5 rounded-full bg-[#062a6e] hover:bg-[#041b4d] text-white font-semibold text-xs text-center block shadow-sm active:scale-95 transition-all"
             >
-              Sign In to Enquire
+              Login to Enquire
             </Link>
           ) : isOwner ? (
             <Link
               href={`/sell/${listing.id}/edit`}
               className="w-full py-2 px-3.5 rounded-full bg-[#062a6e] text-white font-semibold text-xs text-center block shadow-sm active:scale-95 transition-all"
             >
-              Edit Listing
+              Edit Item
             </Link>
           ) : isEnquired && listing.contactValue ? (
             <a
@@ -395,6 +395,15 @@ export default async function ItemPage({ params }: ItemPageProps) {
               listingTitle={listing.title}
               sellerName={listing.sellerName}
               currentUser={session}
+              trigger={
+                <button
+                  type="button"
+                  className="w-full py-2.5 px-4 rounded-full bg-[#c8102e] hover:bg-[#a60d26] text-white font-bold text-xs text-center flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  <span>Enquire Now</span>
+                </button>
+              }
             />
           )}
         </div>

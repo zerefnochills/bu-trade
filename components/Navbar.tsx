@@ -54,13 +54,13 @@ export default function Navbar({ user }: NavbarProps) {
     <>
       <header className="sticky top-0 z-40 w-full bg-white">
         {/* Top University Announcement Bar */}
-        <div className="bg-[#062a6e] text-[#dbe4ff] text-[11px] sm:text-[12.5px] py-1.5 px-3 sm:px-4 font-normal border-b border-[#041b4d]">
+        <div className="bg-[#062a6e] text-[#dbe4ff] text-[12.5px] sm:text-[13.5px] py-1.5 px-3 sm:px-4 font-normal border-b border-[#041b4d]">
           <div className="max-w-[1160px] mx-auto flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5 truncate">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#ff9aa9] shrink-0" />
-              <span className="truncate">The campus marketplace for Bennett University</span>
+              <ShieldCheck className="w-4 h-4 text-[#ff9aa9] shrink-0" />
+              <span className="truncate">The campus marketplace for Bennett University students</span>
             </div>
-            <div className="flex items-center gap-2 sm:gap-3 shrink-0 text-[11px] sm:text-xs">
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0 text-[12px] sm:text-[13px]">
               <Link
                 href="/rules"
                 className="text-[#dbe4ff] hover:text-white transition-colors underline-offset-2 hover:underline"
@@ -82,20 +82,20 @@ export default function Navbar({ user }: NavbarProps) {
 
         {/* Main Sticky Navigation Bar */}
         <nav className="border-b border-[#e1e6f0] shadow-[0_2px_12px_rgba(6,42,110,0.06)] bg-white">
-          <div className="max-w-[1160px] mx-auto px-3.5 sm:px-5 py-2.5 flex items-center justify-between gap-3">
+          <div className="max-w-[1160px] mx-auto px-3.5 sm:px-5 py-3 flex items-center justify-between gap-3">
             {/* Brand Logo & Name */}
             <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group shrink-0">
-              <div className="w-[38px] h-[38px] sm:w-[44px] sm:h-[44px] rounded-[10px] bg-white p-[2px] border border-[#e1e6f0] shadow-sm flex items-center justify-center overflow-hidden">
+              <div className="w-[40px] h-[40px] sm:w-[46px] sm:h-[46px] rounded-[10px] bg-white p-[2px] border border-[#e1e6f0] shadow-sm flex items-center justify-center overflow-hidden">
                 <Image
                   src="/Logo.png"
                   alt="BU Trade Logo"
-                  width={44}
-                  height={44}
+                  width={46}
+                  height={46}
                   className="object-contain w-full h-full"
                   priority
                 />
               </div>
-              <span className="text-[19px] sm:text-[21px] font-bold tracking-tight text-[#062a6e]">
+              <span className="text-[20px] sm:text-[23px] font-black tracking-tight text-[#062a6e]">
                 BU <span className="text-[#c8102e]">Trade</span>
               </span>
             </Link>
@@ -111,9 +111,9 @@ export default function Navbar({ user }: NavbarProps) {
                     key={link.href}
                     href={link.href}
                     aria-label={link.label === 'Feed' ? 'Feedbacks' : link.label}
-                    className={`px-3 py-1.5 rounded-lg text-[14px] font-medium transition-colors ${
+                    className={`px-3.5 py-2 rounded-xl text-[15px] sm:text-[16px] font-semibold transition-colors ${
                       isActive
-                        ? 'text-[#c8102e] bg-[#f3f5fa] font-semibold'
+                        ? 'text-[#c8102e] bg-[#f3f5fa] font-bold'
                         : 'text-[#14203b] hover:text-[#c8102e] hover:bg-[#f3f5fa]'
                     }`}
                   >
@@ -128,24 +128,25 @@ export default function Navbar({ user }: NavbarProps) {
               <Link
                 href="/sell"
                 aria-label="Sell an item"
-                className="inline-flex items-center gap-1 bg-[#c8102e] hover:bg-[#a60d26] text-white text-[12.5px] sm:text-[13px] font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-full shadow-xs hover:shadow-sm transition-all active:scale-[0.98]"
+                className="inline-flex items-center gap-1.5 bg-[#c8102e] hover:bg-[#a60d26] text-white text-[14px] sm:text-[15px] font-bold px-4 sm:px-5 py-2 rounded-full shadow-xs hover:shadow-sm transition-all active:scale-[0.98]"
               >
-                <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
+                <Plus className="w-4 h-4 stroke-[2.5]" />
                 <span>Sell</span>
+                <span className="sr-only">Sell an item</span>
               </Link>
 
               {user ? (
                 <Link
                   href="/profile"
                   title="My profile & listings"
-                  className="w-[36px] h-[36px] sm:w-[38px] sm:h-[38px] rounded-full bg-[#c8102e] text-white flex items-center justify-center font-bold text-[14px] shadow-sm hover:ring-2 hover:ring-[#062a6e] transition-all"
+                  className="w-[38px] h-[38px] sm:w-[40px] sm:h-[40px] rounded-full bg-[#062a6e] text-white flex items-center justify-center font-bold text-[15px] shadow-sm hover:ring-2 hover:ring-[#062a6e] transition-all"
                 >
                   {userInitial}
                 </Link>
               ) : (
                 <Link
                   href="/login"
-                  className="inline-flex items-center gap-1.5 bg-[#f3f5fa] hover:bg-[#e1e6f0] text-[#062a6e] text-[12.5px] sm:text-[13px] font-semibold px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full border border-[#e1e6f0] transition-colors"
+                  className="inline-flex items-center gap-1.5 bg-[#f3f5fa] hover:bg-[#e1e6f0] text-[#062a6e] text-[13.5px] sm:text-[14.5px] font-bold px-4 sm:px-4.5 py-2 rounded-full border border-[#e1e6f0] transition-colors"
                 >
                   <UserCircle className="w-4 h-4 text-[#062a6e]" />
                   <span>Sign in</span>
@@ -212,10 +213,11 @@ export default function Navbar({ user }: NavbarProps) {
       {/* Modern App-Style Bottom Navigation Bar for Android, iPhone & iPad portrait */}
       <nav
         aria-label="Mobile Navigation"
+        aria-hidden="true"
         className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#e1e6f0] pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_20px_rgba(6,42,110,0.08)]"
       >
         <div className="grid grid-cols-5 items-center h-16 max-w-md mx-auto px-2">
-          {/* 1. Home */}
+          {/* 1. Home / Market */}
           <Link
             href="/"
             className={`flex flex-col items-center justify-center gap-1 h-full transition-colors ${
@@ -223,7 +225,7 @@ export default function Navbar({ user }: NavbarProps) {
             }`}
           >
             <Home className="w-5 h-5" />
-            <span className="text-[10.5px]">Home</span>
+            <span className="text-[10.5px]">Market</span>
           </Link>
 
           {/* 2. Trade/Borrow */}
@@ -243,7 +245,7 @@ export default function Navbar({ user }: NavbarProps) {
           <div className="flex items-center justify-center">
             <Link
               href="/sell"
-              aria-label="Sell an item"
+              aria-label="Create listing"
               className="w-12 h-12 rounded-full bg-[#c8102e] hover:bg-[#a60d26] active:scale-95 text-white flex items-center justify-center shadow-lg -translate-y-2 border-2 border-white transition-all"
             >
               <Plus className="w-6 h-6 text-white stroke-[2.5]" />
@@ -273,7 +275,7 @@ export default function Navbar({ user }: NavbarProps) {
             }`}
           >
             <UserCircle className="w-5 h-5" />
-            <span className="text-[10.5px]">{user ? 'Profile' : 'Sign in'}</span>
+            <span className="text-[10.5px]">{user ? 'Profile' : 'Login'}</span>
           </Link>
         </div>
       </nav>
